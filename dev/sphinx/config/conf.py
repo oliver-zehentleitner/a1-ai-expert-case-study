@@ -40,3 +40,4 @@ intersphinx_mapping = {
 exclude_patterns = ["_build"]
 
 suppress_warnings = ["myst.xref_missing"]
+
