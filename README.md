@@ -62,6 +62,67 @@ All variables use the `SMS_` prefix (see `.env.example`).
 
 ---
 
+## Dataset & preprocessing
+
+### Source and class distribution
+
+The dataset contains 5,572 SMS messages labelled by hand:
+
+| Class | Count | Share |
+|-------|------:|------:|
+| HAM   | 4,825 |  86 % |
+| SPAM  |   747 |  14 % |
+
+This imbalance is why accuracy is a meaningless metric here — a model that
+always predicts HAM scores 86 % without learning anything useful.
+
+### Researcher anonymisation — placeholders in the raw data
+
+The original dataset was published with privacy-preserving substitutions.
+Phone numbers, amounts, and other sensitive values were replaced with
+HTML-encoded placeholders:
+
+| Raw token | Meaning |
+|-----------|---------|
+| `&lt;#&gt;` | Any number (phone, amount, date, …) |
+| `&lt;URL&gt;` | A hyperlink |
+| `&lt;DECIMAL&gt;` | A decimal number |
+| `&lt;NUMBER&gt;` | A numeric value |
+| `&amp;` | Ampersand |
+| Other `&lt;…&gt;` | Miscellaneous anonymised tokens |
+
+These are **not** real HTML — they are ASCII representations of `<#>`, `<URL>`,
+etc., stored in a plain-text file and escaped by the researchers.
+
+### Real URLs also present
+
+In addition to the researcher placeholders, some messages contain actual URLs
+(`http://…`, `www.…`). These are strongly correlated with SPAM and must be
+handled consistently.
+
+### How we normalise
+
+All of the above are collapsed to two semantic tokens before any vectorisation:
+
+| Input | Normalised to |
+|-------|--------------|
+| `&lt;URL&gt;`, `http://…`, `www.…` | `__URL__` |
+| `&lt;#&gt;`, `&lt;DECIMAL&gt;`, `&lt;NUMBER&gt;`, standalone digits | `__NUM__` |
+| `&amp;` | `and` |
+| Other `&lt;…&gt;` | removed |
+
+**Why tokens instead of deletion?** The *presence* of a URL or number carries
+signal — SPAM messages contain them at a much higher rate. Deleting them
+discards that signal. Replacing them with a consistent token lets TF-IDF and
+the embedding model learn from it.
+
+**Train-serve consistency:** the normalisation step is the first stage of the
+serialised `sklearn.Pipeline`. When the trained model is loaded for inference,
+the same preprocessing runs automatically — there is no risk of divergence
+between training and prediction.
+
+---
+
 ## Advantages and disadvantages of this implementation, and why it was chosen
 
 ### Classic ML (Part 1)
@@ -181,6 +242,16 @@ sms-analyze clustering --provider azure
 ```bash
 pytest tests/ -v
 ```
+
+### Documentation
+
+```bash
+bash scripts/install_docs_deps.sh   # first time only — installs Sphinx + furo
+bash scripts/build_docs.sh
+```
+
+Opens at `docs/_build/html/index.html`. Covers CLI reference, full API autodoc,
+and architecture overview.
 
 ### Use as a library
 
