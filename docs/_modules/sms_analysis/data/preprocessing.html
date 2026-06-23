@@ -230,31 +230,34 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Text preprocessing for the SMS Spam Collection dataset.</span>
 
-<span class="sd">The dataset was anonymised by its authors: numbers, decimals, and URLs were</span>
-<span class="sd">replaced with HTML-encoded placeholders such as ``&amp;lt;#&amp;gt;`` and ``&amp;lt;URL&amp;gt;``.</span>
-<span class="sd">Raw URLs in non-anonymised messages were left in place.</span>
+<span class="sd">Several messages contain HTML-encoded tokens such as ``&amp;lt;URL&amp;gt;`` and ``&amp;lt;#&amp;gt;``.</span>
+<span class="sd">Their origin is unclear (researcher anonymisation or smartphone copy-paste</span>
+<span class="sd">artefacts) and would need to be verified against the original collection notes.</span>
+<span class="sd">Some messages also contain raw URLs (``http://…``).</span>
 
-<span class="sd">This module normalises both forms to consistent semantic tokens so that the</span>
-<span class="sd">model sees the same representation at training time and at inference time.</span>
-<span class="sd">Skipping this step at inference would cause train-serve skew: the model learns</span>
-<span class="sd">``__URL__`` as a spam signal but never sees it in production.</span>
+<span class="sd">This module normalises all observed forms to consistent semantic tokens so that</span>
+<span class="sd">the model sees the same representation at training time and at inference time.</span>
+<span class="sd">Skipping this step at inference would cause train-serve skew.</span>
 
 <span class="sd">Tokens produced</span>
 <span class="sd">---------------</span>
-<span class="sd">``__URL__``   – any URL placeholder or real URL</span>
-<span class="sd">``__NUM__``   – any numeric placeholder or standalone number</span>
-<span class="sd">``__AMP__``   – HTML-encoded ampersand (``&amp;amp;``)</span>
+<span class="sd">``__USER__``  – ``@ &amp;lt;URL&amp;gt;`` or ``@handle`` (username / social-media mention)</span>
+<span class="sd">``__URL__``   – URL placeholder or real URL</span>
+<span class="sd">``__NUM__``   – numeric placeholder or standalone number</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 
-<span class="c1"># Pre-compiled patterns — compiled once at import time</span>
+<span class="c1"># Pre-compiled patterns — compiled once at import time.</span>
+<span class="c1"># Order matters: __USER__ must be matched before the general __URL__ pass.</span>
+<span class="n">_AT_USER_HTML</span>  <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;@\s*&amp;lt;URL&amp;gt;&#39;</span><span class="p">,</span>               <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+<span class="n">_AT_USER_RAW</span>   <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;@\w+&#39;</span><span class="p">)</span>
 <span class="n">_HTML_URL</span>      <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;&amp;lt;URL&amp;gt;&#39;</span><span class="p">,</span>                   <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
 <span class="n">_HTML_NUM</span>      <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;&amp;lt;(?:#|DECIMAL|NUMBER)&amp;gt;&#39;</span><span class="p">,</span>  <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
 <span class="n">_HTML_AMP</span>      <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;&amp;amp;&#39;</span><span class="p">,</span>                         <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
 <span class="n">_HTML_LEFTOVER</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;&amp;lt;.*?&amp;gt;&#39;</span><span class="p">,</span>                   <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
 <span class="n">_REAL_URL</span>      <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;https?://\S+|www\.\S+&#39;</span><span class="p">,</span>         <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
-<span class="n">_STANDALONE_NR</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\b\d{2,}\b&#39;</span><span class="p">)</span>   <span class="c1"># numbers ≥ 2 digits (prices, dates, …)</span>
+<span class="n">_STANDALONE_NR</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\b\d{2,}\b&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="preprocess">
@@ -274,6 +277,9 @@
 
 <span class="sd">    Examples::</span>
 
+<span class="sd">        &gt;&gt;&gt; preprocess(&quot;follow me @ &amp;lt;URL&amp;gt; ok?&quot;)</span>
+<span class="sd">        &#39;follow me __USER__ ok?&#39;</span>
+
 <span class="sd">        &gt;&gt;&gt; preprocess(&quot;Win &amp;lt;URL&amp;gt; now!&quot;)</span>
 <span class="sd">        &#39;Win __URL__ now!&#39;</span>
 
@@ -286,10 +292,12 @@
 <span class="sd">        &gt;&gt;&gt; preprocess(&quot;Good &amp;amp; bad&quot;)</span>
 <span class="sd">        &#39;Good and bad&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_AT_USER_HTML</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__USER__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>   <span class="c1"># @ &lt;URL&gt; → username, before general URL pass</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_AT_USER_RAW</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__USER__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>    <span class="c1"># @handle not caught by HTML pass</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_URL</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__URL__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_NUM</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__NUM__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_AMP</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot; and &quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_LEFTOVER</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>       <span class="c1"># strip any remaining &amp;lt;…&amp;gt; noise</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_LEFTOVER</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">_REAL_URL</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__URL__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">_STANDALONE_NR</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__NUM__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></div>
