@@ -17,13 +17,16 @@ class EmbeddingProviderType(str, Enum):
 
 class Settings(BaseSettings):
     """
-    All configuration is read from environment variables (prefix: SMS_)
-    or a ``.env`` file in the project root.
+    Environment-driven configuration (prefix: ``SMS_``).
+
+    Provider selection is a CLI concern (``--provider`` flag), not an env var.
+    Only secrets and system-level settings live here.
 
     Examples::
 
-        SMS_EMBEDDING_PROVIDER=openai
         SMS_OPENAI_API_KEY=sk-...
+        SMS_AZURE_OPENAI_API_KEY=...
+        SMS_AZURE_OPENAI_ENDPOINT=https://<resource>.openai.azure.com/
     """
 
     model_config = SettingsConfigDict(
@@ -34,7 +37,6 @@ class Settings(BaseSettings):
     )
 
     # --- General -----------------------------------------------------------------
-    embedding_provider: EmbeddingProviderType = EmbeddingProviderType.OLLAMA
     log_level: str = "INFO"
 
     # --- Paths -------------------------------------------------------------------
