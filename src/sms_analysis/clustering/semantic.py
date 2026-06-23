@@ -79,8 +79,10 @@ class SemanticClusterer:
             "Starting semantic clustering of %d texts (provider=%s)",
             len(texts), self.provider.__class__.__name__,
         )
+        print(f"Embedding {len(texts)} messages — this may take a minute …", flush=True)
 
         embeddings = np.array(self.provider.embed(texts))
+        print("Embeddings done. Running K-Means and UMAP …", flush=True)
 
         if self.n_clusters is not None:
             best_k = self.n_clusters
