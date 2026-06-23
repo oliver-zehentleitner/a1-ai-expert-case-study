@@ -1,18 +1,8 @@
 #!/usr/bin/env bash
-# Install Sphinx documentation build dependencies into the active virtualenv.
+# Install the package plus Sphinx documentation dependencies into the active venv.
+# Run with your project venv already activated.
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="$SCRIPT_DIR/.."
-
-if [[ -f "$ROOT/.venv/bin/activate" ]]; then
-    source "$ROOT/.venv/bin/activate"
-fi
-
-pip install \
-    "sphinx>=7.3" \
-    "furo>=2024.1" \
-    "sphinx-autodoc-typehints>=2.2" \
-    "myst-parser>=3.0"
-
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+pip install -e "$ROOT[docs]"
 echo "Done. Run  bash scripts/build_docs.sh  to build."

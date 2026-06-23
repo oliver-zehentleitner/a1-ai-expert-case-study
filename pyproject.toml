@@ -32,6 +32,12 @@ dev = [
     "pytest-cov>=5",
     "ruff>=0.4",
 ]
+docs = [
+    "sphinx>=7.3",
+    "furo>=2024.1",
+    "sphinx-autodoc-typehints>=2.2",
+    "myst-parser>=3.0",
+]
 
 [project.scripts]
 sms-analyze = "sms_analysis.cli:main"
