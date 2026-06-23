@@ -106,9 +106,10 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-# AI
-AGENTS.override.md
+# AI — local-only instruction files (never commit)
+CLAUDE.md
 CLAUDE.local.md
+AGENTS.override.md
 
 # Project-specific
 .env
