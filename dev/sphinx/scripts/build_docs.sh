@@ -3,12 +3,12 @@
 # Source: dev/sphinx/   Output: docs/   (committed and shipped)
 #
 # Usage:
-#   bash scripts/build_docs.sh           # build only
-#   bash scripts/build_docs.sh --open    # build + open in default browser
-#   bash scripts/build_docs.sh -W        # treat warnings as errors (passed to sphinx-build)
+#   bash dev/sphinx/scripts/build_docs.sh           # build only
+#   bash dev/sphinx/scripts/build_docs.sh --open    # build + open in default browser
+#   bash dev/sphinx/scripts/build_docs.sh -W        # treat warnings as errors
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 OPEN=0
 SPHINX_ARGS=()
 
