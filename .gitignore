@@ -66,8 +66,11 @@ instance/
 # Scrapy stuff:
 .scrapy
 
-# Sphinx documentation
+# Sphinx build cache / internals (not needed for serving)
+dev/sphinx/_build/
 docs/_build/
+docs/.doctrees/
+docs/.buildinfo
 
 # PyBuilder
 target/
