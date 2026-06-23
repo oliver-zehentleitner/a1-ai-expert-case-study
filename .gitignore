@@ -109,3 +109,10 @@ venv.bak/
 # AI
 AGENTS.override.md
 CLAUDE.local.md
+
+# Project-specific
+.env
+outputs/*.joblib
+outputs/*.pkl
+outputs/embeddings_cache/
+learning/

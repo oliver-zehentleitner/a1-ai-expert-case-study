@@ -1,0 +1,15 @@
+pandas>=2.2
+numpy>=1.26
+scikit-learn>=1.5
+nltk>=3.9
+matplotlib>=3.9
+seaborn>=0.13
+pydantic>=2.7
+pydantic-settings>=2.4
+umap-learn>=0.5
+joblib>=1.4
+openai>=1.35
+ollama>=0.3
+jupyter>=1.0
+notebook>=7.0
+ipykernel>=6.0
