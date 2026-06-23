@@ -246,7 +246,7 @@ pytest tests/ -v
 ### Documentation
 
 ```bash
-bash scripts/install_docs_deps.sh   # first time only — installs Sphinx + furo
+pip install -e ".[docs]"   # first time only — adds Sphinx + furo to the project venv
 bash scripts/build_docs.sh
 ```
 
