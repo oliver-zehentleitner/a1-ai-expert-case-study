@@ -4,8 +4,7 @@ Interactive CLI helpers — zero-setup UX for first-time users.
 Handles:
 - Prompting for missing secrets (API keys, endpoints)
 - Offering to persist them to .env
-- Checking / starting the Ollama server
-- Pulling missing Ollama models
+- Installing, starting, and pulling models for Ollama
 
 Design rules:
 - Secrets are collected via getpass (not echoed, not in shell history).
@@ -15,11 +14,16 @@ Design rules:
 
 import getpass
 import os
+import platform
 import shutil
 import subprocess
 import sys
 import time
 from pathlib import Path
+
+# Resolved once at import time — works for editable installs (dev) and may be
+# absent in a fully installed package (non-dev); handled gracefully below.
+_SCRIPTS_DIR = Path(__file__).parent.parent.parent / "scripts"
 
 _ENV_FILE = Path(".env")
 
@@ -44,6 +48,31 @@ def _ask(prompt: str, default: bool = True, yes: bool = False) -> bool:
         print()
         sys.exit("Aborted.")
     return (raw in ("y", "yes")) if raw else default
+
+
+def _ask_choice(options: list[str], yes_index: int | None = None, yes: bool = False) -> int:
+    """Numbered menu — returns the 0-based index of the chosen option.
+
+    Args:
+        options:   List of option labels to display.
+        yes_index: Index to select automatically when ``yes=True``.
+        yes:       If ``True`` and ``yes_index`` is set, skip the prompt.
+    """
+    if yes and yes_index is not None:
+        print(f"  → {options[yes_index]} (auto)")
+        return yes_index
+    for i, label in enumerate(options, 1):
+        print(f"  {i}) {label}")
+    while True:
+        try:
+            raw = input("Choice [1]: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            sys.exit("Aborted.")
+        raw = raw or "1"
+        if raw.isdigit() and 1 <= int(raw) <= len(options):
+            return int(raw) - 1
+        print(f"  Please enter a number between 1 and {len(options)}.")
 
 
 def _ask_secret(prompt: str) -> str:
@@ -133,15 +162,39 @@ def _ollama_reachable(base_url: str) -> bool:
         return False
 
 
-def _start_ollama(base_url: str) -> None:
+def _run_install_script() -> None:
+    """Run the bundled Ollama setup script for the current platform."""
+    if platform.system() == "Windows":
+        script = _SCRIPTS_DIR / "setup_ollama.ps1"
+        if not script.exists():
+            sys.exit("Setup script not found. Install Ollama manually (see scripts/setup_ollama.ps1).")
+        subprocess.run(
+            ["powershell", "-ExecutionPolicy", "Bypass", "-File", str(script)],
+            check=True,
+        )
+    else:
+        script = _SCRIPTS_DIR / "setup_ollama.sh"
+        if not script.exists():
+            sys.exit("Setup script not found. Install Ollama manually (see scripts/setup_ollama.sh).")
+        subprocess.run(["bash", str(script)], check=True)
+
+
+def _install_ollama(yes: bool) -> str:
+    """Run the setup script and return the path to the installed binary."""
+    print("Running Ollama installer…")
+    _run_install_script()
     binary = _find_ollama_binary()
     if not binary:
-        print(
-            "[!] Ollama binary not found.\n"
-            "    Install it with:  bash scripts/setup_ollama.sh"
+        sys.exit(
+            "Ollama installation completed but binary not found.\n"
+            "Re-open your terminal so PATH is refreshed, then try again."
         )
-        sys.exit("Aborted: Ollama not installed.")
+    print(f"Ollama installed: {binary}")
+    return binary
 
+
+def _start_ollama_server(base_url: str, binary: str) -> None:
+    """Launch `ollama serve` in the background and wait until it is reachable."""
     print(f"Starting Ollama ({binary})…")
     subprocess.Popen(
         [binary, "serve"],
@@ -154,10 +207,10 @@ def _start_ollama(base_url: str) -> None:
             print("Ollama is ready.")
             return
         print(f"  waiting… ({i + 1}s)", end="\r")
-    sys.exit("\nOllama did not start within 12 seconds.")
+    sys.exit("\nOllama did not respond within 12 seconds.")
 
 
-def _ensure_ollama_model(base_url: str, model: str, yes: bool) -> None:
+def _ensure_ollama_model(base_url: str, model: str, binary: str, yes: bool) -> None:
     import httpx
     resp = httpx.get(f"{base_url}/api/tags", timeout=5)
     pulled = [m["name"].split(":")[0] for m in resp.json().get("models", [])]
@@ -167,19 +220,44 @@ def _ensure_ollama_model(base_url: str, model: str, yes: bool) -> None:
     if not _ask(f"[!] Model '{model}' is not pulled yet. Pull it now?", default=True, yes=yes):
         sys.exit(f"Aborted: model '{model}' not available.")
 
-    binary = _find_ollama_binary()
     print(f"Pulling {model}… (first run only, ~274 MB)")
     subprocess.run([binary, "pull", model], check=True)
 
 
 def ensure_ollama(base_url: str, model: str, yes: bool) -> None:
-    """Make sure Ollama is running and the requested model is available."""
-    if not _ollama_reachable(base_url):
-        if not _ask("[!] Ollama is not running. Start it now?", default=True, yes=yes):
-            sys.exit("Aborted: Ollama not available.")
-        _start_ollama(base_url)
+    """Ensure Ollama is installed, running, and the requested model is available.
 
-    _ensure_ollama_model(base_url, model, yes)
+    Steps:
+
+    1. **Installed?** — locate the binary; offer to run the setup script if absent.
+    2. **Running?** — ping the API; offer Start / Try again / Abort in a loop.
+    3. **Model pulled?** — check ``/api/tags``; offer to pull if missing.
+    """
+    # ── Step 1: installed? ───────────────────────────────────────────────────
+    binary = _find_ollama_binary()
+    if not binary:
+        print("[!] Ollama is not installed.")
+        if not _ask("Install it now using the bundled setup script?", default=True, yes=yes):
+            sys.exit("Aborted: Ollama not installed.")
+        binary = _install_ollama(yes)
+
+    # ── Step 2: running? (loop with 3-way choice) ────────────────────────────
+    while not _ollama_reachable(base_url):
+        print("[!] Ollama is not running.")
+        choice = _ask_choice(
+            ["Start Ollama", "Check again", "Abort"],
+            yes_index=0,
+            yes=yes,
+        )
+        if choice == 0:
+            _start_ollama_server(base_url, binary)
+        elif choice == 1:
+            continue   # re-evaluate the while condition
+        else:
+            sys.exit("Aborted: Ollama not running.")
+
+    # ── Step 3: model available? ─────────────────────────────────────────────
+    _ensure_ollama_model(base_url, model, binary, yes)
 
 
 # ---------------------------------------------------------------------------
