@@ -166,16 +166,14 @@ sms-analyze clustering
 
 **Option B — OpenAI**
 ```bash
-cp .env.example .env
-# set SMS_EMBEDDING_PROVIDER=openai and SMS_OPENAI_API_KEY=sk-...
-sms-analyze clustering
+sms-analyze clustering --provider openai
+# prompts for SMS_OPENAI_API_KEY on first run and offers to save it to .env
 ```
 
 **Option C — Azure OpenAI**
 ```bash
-cp .env.example .env
-# set SMS_EMBEDDING_PROVIDER=azure and the three SMS_AZURE_* variables
-sms-analyze clustering
+sms-analyze clustering --provider azure
+# prompts for SMS_AZURE_OPENAI_API_KEY, endpoint, and deployment on first run
 ```
 
 ### Tests
