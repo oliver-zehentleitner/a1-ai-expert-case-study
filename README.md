@@ -234,17 +234,13 @@ jupyter notebook notebooks/
 
 **Option A — Ollama (local, no API key)**
 
-Linux / macOS:
 ```bash
-bash scripts/setup_ollama.sh   # installs Ollama + pulls nomic-embed-text
 sms-analyze clustering
 ```
 
-Windows (PowerShell):
-```powershell
-.\scripts\setup_ollama.ps1     # downloads OllamaSetup.exe, then pulls model
-sms-analyze clustering
-```
+On first run the CLI checks whether Ollama is installed and running and whether
+the model is pulled — and offers to handle each step interactively.
+Use `--yes` to confirm all prompts automatically.
 
 **Option B — OpenAI**
 ```bash
@@ -267,12 +263,16 @@ pytest tests/ -v
 ### Documentation
 
 ```bash
-pip install -e ".[docs]"   # first time only — adds Sphinx + furo to the project venv
-bash scripts/build_docs.sh
+pip install -e ".[docs]"                    # first time only
+bash dev/sphinx/scripts/build_docs.sh
 ```
 
-Opens at `docs/_build/html/index.html`. Covers CLI reference, full API autodoc,
-and architecture overview.
+Opens at `docs/index.html`. Covers CLI reference, full API autodoc, and
+architecture overview. Or open it directly:
+
+```bash
+sms-analyze docs
+```
 
 ### Use as a library
 
