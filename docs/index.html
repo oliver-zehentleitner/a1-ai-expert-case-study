@@ -172,7 +172,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -190,7 +190,7 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+  <p class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
@@ -215,7 +215,7 @@
         </a>
         <div class="content-icon-container">
           <div class="view-this-page">
-  <a class="muted-link" href="_sources/index.rst.txt" title="View this page">
+  <a class="muted-link" href="_sources/index.md.txt" title="View this page">
     <svg><use href="#svg-eye"></use></svg>
     <span class="visually-hidden">View this page</span>
   </a>
@@ -228,46 +228,361 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="sms-analysis">
-<h1>SMS Analysis<a class="headerlink" href="#sms-analysis" title="Link to this heading">¶</a></h1>
-<p>Solution to the A1 Telekom Austria AI Expert case study — classical ML and
-LLM-based embedding clustering on an SMS spam/ham dataset.</p>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#tasks">Tasks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#options">Options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#zero-setup-first-run">Zero-setup first run</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#environment-variables">Environment variables</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api.html#module-sms_analysis.data.loader">Data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api.html#module-sms_analysis.config">Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api.html#module-sms_analysis.analysis.frequency">Analysis</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api.html#module-sms_analysis.classification.pipeline">Classification</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api.html#module-sms_analysis.clustering.base">Clustering</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api.html#module-sms_analysis.visualization.plots">Visualization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api.html#module-sms_analysis.interactive">Interactive / CLI helpers</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="architecture.html#package-layout">Package layout</a></li>
-<li class="toctree-l2"><a class="reference internal" href="architecture.html#domain-models">Domain models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="architecture.html#strategy-pattern-embedding-providers">Strategy pattern — embedding providers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="architecture.html#train-serve-consistency">Train-serve consistency</a></li>
-<li class="toctree-l2"><a class="reference internal" href="architecture.html#configuration">Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="architecture.html#evaluation-metrics">Evaluation metrics</a></li>
-</ul>
-</li>
-</ul>
+          <section id="ai-expert-case-study-oliver-zehentleitner">
+<h1>AI Expert Case Study – Oliver Zehentleitner<a class="headerlink" href="#ai-expert-case-study-oliver-zehentleitner" title="Link to this heading">¶</a></h1>
+<p>Solution to the <a class="reference internal" href="#./assignment/Fallbeispiel.pdf"><span class="xref myst">A1 Telekom Austria AI Expert case study</span></a>
+(<a class="reference external" href="https://www.isg.com/jobs/ad/AI_Expert-110091">job posting</a>).</p>
+<p><strong><a class="reference internal" href="#docs/index.html"><span class="xref myst">Full documentation</span></a></strong> — CLI reference, API autodoc, architecture overview.</p>
+<p>The SMS dataset is located at
+<a class="reference internal" href="#./assignment/3D8026C4.zip/SMSSpamCollection"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">./assignment/3D8026C4.zip/SMSSpamCollection</span></code></span></a>,
+based on the publicly available
+<a class="reference external" href="http://www.dt.fee.unicamp.br/~tiago/smsspamcollection/">SMS Spam Collection v.1</a>
+by Tiago A. Almeida and José María Gómez Hidalgo. Used here for this case study only.</p>
+<hr class="docutils" />
+<section id="summary-of-the-task">
+<h2>Summary of the task<a class="headerlink" href="#summary-of-the-task" title="Link to this heading">¶</a></h2>
+<p>The case study covers two focus areas applied to an English SMS dataset
+(5,572 messages: 86 % HAM / 14 % SPAM):</p>
+<p><strong>Part 1 – Classic ML &amp; Data Science (fully local, no external services)</strong></p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>#</p></th>
+<th class="head"><p>Task</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>Word frequency analysis across all SMS</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>HAM vs. SPAM: distinctive vocabulary per class</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p>Most frequent bigrams and trigrams</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p>SPAM/HAM classification model with evaluation</p></td>
+</tr>
+</tbody>
+</table>
 </div>
+<p><strong>Part 2 – GenAI &amp; LLM</strong></p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>#</p></th>
+<th class="head"><p>Task</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>5</p></td>
+<td><p>Semantic clustering of SMS using embedding vectors</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<hr class="docutils" />
+<section id="how-is-the-implementation-envisaged">
+<h2>How is the implementation envisaged?<a class="headerlink" href="#how-is-the-implementation-envisaged" title="Link to this heading">¶</a></h2>
+<p>The solution is structured as an <strong>installable Python package</strong> (<code class="docutils literal notranslate"><span class="pre">sms_analysis</span></code>)
+rather than a collection of standalone scripts. Jupyter notebooks import the
+package and serve as the presentation layer — the library is the real deliverable.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>src/sms_analysis/
+├── data/           – Pydantic domain models + dataset loader
+├── analysis/       – Word frequencies, HAM/SPAM comparison, n-grams  (Tasks 1–3)
+├── classification/ – TF-IDF pipeline + evaluation utilities          (Task 4)
+├── clustering/
+│   ├── base.py     – Abstract EmbeddingProvider interface            (Task 5)
+│   └── providers/  – Ollama · OpenAI · Azure OpenAI implementations
+├── visualization/  – Reusable, presentation-ready plot functions
+└── cli.py          – sms-analyze CLI entrypoint
+</pre></div>
+</div>
+<p><strong>Key architectural decision — provider abstraction:</strong>
+The clustering logic depends only on the abstract <code class="docutils literal notranslate"><span class="pre">EmbeddingProvider</span></code> interface.
+Switching from local (Ollama) to cloud (OpenAI / Azure) is a single config
+change — no code change. This follows the Strategy pattern and makes the
+solution testable, extensible, and provider-agnostic.</p>
+<p><strong>Configuration</strong> is fully environment-driven via <code class="docutils literal notranslate"><span class="pre">pydantic-settings</span></code>.
+All variables use the <code class="docutils literal notranslate"><span class="pre">SMS_</span></code> prefix (see <code class="docutils literal notranslate"><span class="pre">.env.example</span></code>).</p>
+</section>
+<hr class="docutils" />
+<section id="dataset-preprocessing">
+<h2>Dataset &amp; preprocessing<a class="headerlink" href="#dataset-preprocessing" title="Link to this heading">¶</a></h2>
+<section id="source-and-class-distribution">
+<h3>Source and class distribution<a class="headerlink" href="#source-and-class-distribution" title="Link to this heading">¶</a></h3>
+<p>The dataset contains 5,572 SMS messages labelled by hand:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Class</p></th>
+<th class="head text-right"><p>Count</p></th>
+<th class="head text-right"><p>Share</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>HAM</p></td>
+<td class="text-right"><p>4,825</p></td>
+<td class="text-right"><p>86 %</p></td>
+</tr>
+<tr class="row-odd"><td><p>SPAM</p></td>
+<td class="text-right"><p>747</p></td>
+<td class="text-right"><p>14 %</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>This imbalance is why accuracy is a meaningless metric here — a model that
+always predicts HAM scores 86 % without learning anything useful.</p>
+</section>
+<section id="html-encoded-tokens-in-the-raw-data">
+<h3>HTML-encoded tokens in the raw data<a class="headerlink" href="#html-encoded-tokens-in-the-raw-data" title="Link to this heading">¶</a></h3>
+<p>Several messages contain HTML-encoded entities such as <code class="docutils literal notranslate"><span class="pre">&amp;lt;URL&amp;gt;</span></code> or <code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code>.
+Their exact origin is unclear: they may be researcher-applied anonymisation
+placeholders, or they may be copy-paste artefacts from a smartphone browser —
+this would need to be verified against the original data collection notes.
+Regardless of origin, the observed tokens are:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Raw token</p></th>
+<th class="head"><p>Observed meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code></p></td>
+<td><p>A number (phone, amount, date, …)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;URL&amp;gt;</span></code></p></td>
+<td><p>A hyperlink <strong>or a username/handle</strong> (e.g. <code class="docutils literal notranslate"><span class="pre">&#64;</span> <span class="pre">&amp;lt;URL&amp;gt;</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;DECIMAL&amp;gt;</span></code></p></td>
+<td><p>A decimal number</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;NUMBER&amp;gt;</span></code></p></td>
+<td><p>A numeric value</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;amp;</span></code></p></td>
+<td><p>Ampersand</p></td>
+</tr>
+<tr class="row-odd"><td><p>Other <code class="docutils literal notranslate"><span class="pre">&amp;lt;…&amp;gt;</span></code></p></td>
+<td><p>Further tokens of unclear origin</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>These are <strong>not</strong> real HTML — they are ASCII representations of <code class="docutils literal notranslate"><span class="pre">&lt;#&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;URL&gt;</span></code>,
+etc., stored in a plain-text file.</p>
+</section>
+<section id="real-urls-also-present">
+<h3>Real URLs also present<a class="headerlink" href="#real-urls-also-present" title="Link to this heading">¶</a></h3>
+<p>A small number of messages contain actual URLs (<code class="docutils literal notranslate"><span class="pre">http://…</span></code>, <code class="docutils literal notranslate"><span class="pre">www.…</span></code>). In this
+dataset they appear exclusively in SPAM — a correlation that is a property of
+this sample, not a general truth. Ham messages regularly contain URLs in the
+real world (shared links, meeting invites, etc.).</p>
+</section>
+<section id="how-we-normalise">
+<h3>How we normalise<a class="headerlink" href="#how-we-normalise" title="Link to this heading">¶</a></h3>
+<p>All of the above are collapsed to three semantic tokens before any vectorisation:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Input</p></th>
+<th class="head"><p>Normalised to</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&#64;</span> <span class="pre">&amp;lt;URL&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;handle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">__USER__</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;URL&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">http://…</span></code>, <code class="docutils literal notranslate"><span class="pre">www.…</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">__URL__</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;DECIMAL&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;NUMBER&amp;gt;</span></code>, standalone digits</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">__NUM__</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;amp;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">and</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Other <code class="docutils literal notranslate"><span class="pre">&amp;lt;…&amp;gt;</span></code></p></td>
+<td><p>removed</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Why tokens instead of deletion?</strong> The <em>presence</em> of a URL, username mention,
+or number is a strong statistical signal — spam messages contain them at a much
+higher rate in this dataset. Deleting them discards that signal. Replacing them
+with a consistent token lets TF-IDF and the embedding model learn the pattern.</p>
+<p><strong>What ML does and does not decide here:</strong>
+The model learns that <em>spam messages tend to contain URLs or phone numbers more
+often</em> — it does not evaluate whether a specific URL or number is malicious.
+That distinction matters in production:</p>
+<ul class="simple">
+<li><p>A URL is not inherently spam or ham. A domain that is clean today can be
+compromised tomorrow, and a spammer can register a fresh domain that appears
+on no blacklist yet.</p></li>
+<li><p>A phone number is not inherently spam or ham either. Numbers get recycled,
+spoofed, or legitimately used by businesses.</p></li>
+</ul>
+<p>For high-quality spam filtering, URL and phone-number reputation checks belong
+in a dedicated layer — URL blacklists / threat-intel feeds (IoC matching) and
+carrier/number reputation services — not in the ML text classifier. The ML
+signal (“a URL is present”) and the reputation check (“this specific URL is
+known-bad”) complement each other and should not be conflated.</p>
+<p><strong>Train-serve consistency:</strong> the normalisation step is the first stage of the
+serialised <code class="docutils literal notranslate"><span class="pre">sklearn.Pipeline</span></code>. When the trained model is loaded for inference,
+the same preprocessing runs automatically — there is no risk of divergence
+between training and prediction.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="advantages-and-disadvantages-of-this-implementation-and-why-it-was-chosen">
+<h2>Advantages and disadvantages of this implementation, and why it was chosen<a class="headerlink" href="#advantages-and-disadvantages-of-this-implementation-and-why-it-was-chosen" title="Link to this heading">¶</a></h2>
+<section id="classic-ml-part-1">
+<h3>Classic ML (Part 1)<a class="headerlink" href="#classic-ml-part-1" title="Link to this heading">¶</a></h3>
+<p><strong>Text representation — TF-IDF with bigrams</strong></p>
+<ul class="simple">
+<li><p><em>Advantage:</em> Sparse, interpretable, fast. The IDF term down-weights ubiquitous words
+(no stopword list needed for the core signal). Including bigrams lets the model
+capture phrases like “free entry” or “win prize” that are individually ambiguous.</p></li>
+<li><p><em>Disadvantage:</em> No semantic understanding — “automobile” and “car” are unrelated vectors.
+Word order is lost beyond the bigram window.</p></li>
+</ul>
+<p><strong>Model — Logistic Regression (primary) + Naive Bayes (baseline)</strong></p>
+<ul class="simple">
+<li><p><em>Advantage:</em> LR coefficients are directly interpretable: each word has a signed weight
+visible in the feature-importance plot. Excellent performance on sparse TF-IDF input.
+NB provides a fast, explainable baseline rooted in probability theory.</p></li>
+<li><p><em>Disadvantage:</em> Linear decision boundary — cannot model non-linear feature interactions
+without explicit engineering. A transformer model (e.g. fine-tuned BERT) would likely
+close the remaining error gap on edge cases.</p></li>
+<li><p><em>Why not SVM / Random Forest / deep learning?</em> SVM is competitive but less interpretable.
+Ensemble methods are optimised for dense, low-dimensional tabular data. Deep learning
+would be overkill for 5,500 samples and a 99 %+ achievable AUC with linear models.</p></li>
+</ul>
+<p><strong>Evaluation — F1-SPAM and ROC-AUC (not accuracy)</strong>
+The dataset is imbalanced (86 / 14). A model that always predicts HAM scores 86 % accuracy
+without learning anything. F1-SPAM and ROC-AUC are the meaningful primary metrics.
+Stratified k-fold cross-validation preserves the class ratio in every fold.</p>
+</section>
+<section id="genai-embeddings-part-2">
+<h3>GenAI / Embeddings (Part 2)<a class="headerlink" href="#genai-embeddings-part-2" title="Link to this heading">¶</a></h3>
+<p><strong>Embeddings — nomic-embed-text (Ollama) / text-embedding-3-small (OpenAI / Azure)</strong></p>
+<ul class="simple">
+<li><p><em>Advantage:</em> Dense semantic vectors capture meaning, not just vocabulary. Two semantically
+similar spam messages using completely different words land in the same cluster — impossible
+with TF-IDF. Running locally via Ollama requires no API key and works offline.</p></li>
+<li><p><em>Disadvantage:</em> Embedding 5,500 messages locally is slow on CPU (~minutes). API-based
+providers are faster but introduce a cost and a network dependency.</p></li>
+</ul>
+<p><strong>Clustering — K-Means with automatic K selection via silhouette score</strong></p>
+<ul class="simple">
+<li><p><em>Advantage:</em> Simple, deterministic, efficient. Automatic K selection avoids manual tuning.
+UMAP reduction to 2D produces publication-quality scatter plots where cluster separation
+is visually obvious.</p></li>
+<li><p><em>Disadvantage:</em> K-Means assumes spherical clusters and is sensitive to outliers.
+HDBSCAN would be more robust but harder to explain in 15 minutes.</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="how-does-the-implementation-work">
+<h2>How does the implementation work?<a class="headerlink" href="#how-does-the-implementation-work" title="Link to this heading">¶</a></h2>
+<section id="prerequisites">
+<h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">¶</a></h3>
+<p><strong>Linux / macOS</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+<span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
+</div>
+<p><strong>Windows (PowerShell)</strong></p>
+<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">-m</span> <span class="n">venv</span> <span class="p">.</span><span class="n">venv</span>
+<span class="p">.</span><span class="n">venv</span><span class="p">\</span><span class="n">Scripts</span><span class="p">\</span><span class="n">Activate</span><span class="p">.</span><span class="n">ps1</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">-e</span> <span class="p">.</span>
+</pre></div>
+</div>
+</section>
+<section id="part-1-classic-ml-fully-local-no-setup-beyond-pip-install">
+<h3>Part 1 — Classic ML (fully local, no setup beyond pip install)<a class="headerlink" href="#part-1-classic-ml-fully-local-no-setup-beyond-pip-install" title="Link to this heading">¶</a></h3>
+<p><strong>Run all analyses at once:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sms-analyze<span class="w"> </span>all
+</pre></div>
+</div>
+<p><strong>Or run individual tasks:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sms-analyze<span class="w"> </span>frequency<span class="w">        </span><span class="c1"># Task 1 – top word frequencies</span>
+sms-analyze<span class="w"> </span>comparison<span class="w">       </span><span class="c1"># Task 2 – HAM vs. SPAM vocabulary</span>
+sms-analyze<span class="w"> </span>ngrams<span class="w">           </span><span class="c1"># Task 3 – bigrams + trigrams</span>
+sms-analyze<span class="w"> </span>classification<span class="w">   </span><span class="c1"># Task 4 – train, evaluate, save model</span>
+sms-analyze<span class="w"> </span>classification<span class="w"> </span>--model<span class="w"> </span>naive_bayes<span class="w">   </span><span class="c1"># baseline comparison</span>
+</pre></div>
+</div>
+<p>Generated plots and models are saved to <code class="docutils literal notranslate"><span class="pre">outputs/</span></code>.</p>
+<p><strong>Or open the Jupyter notebooks:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>jupyter<span class="w"> </span>notebook<span class="w"> </span>notebooks/
+</pre></div>
+</div>
+</section>
+<section id="part-2-semantic-clustering-task-5">
+<h3>Part 2 — Semantic Clustering (Task 5)<a class="headerlink" href="#part-2-semantic-clustering-task-5" title="Link to this heading">¶</a></h3>
+<p><strong>Option A — Ollama (local, no API key)</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sms-analyze<span class="w"> </span>clustering
+</pre></div>
+</div>
+<p>On first run the CLI checks whether Ollama is installed and running and whether
+the model is pulled — and offers to handle each step interactively.
+Use <code class="docutils literal notranslate"><span class="pre">--yes</span></code> to confirm all prompts automatically.</p>
+<p><strong>Option B — OpenAI</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sms-analyze<span class="w"> </span>clustering<span class="w"> </span>--provider<span class="w"> </span>openai
+<span class="c1"># prompts for SMS_OPENAI_API_KEY on first run and offers to save it to .env</span>
+</pre></div>
+</div>
+<p><strong>Option C — Azure OpenAI</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sms-analyze<span class="w"> </span>clustering<span class="w"> </span>--provider<span class="w"> </span>azure
+<span class="c1"># prompts for SMS_AZURE_OPENAI_API_KEY, endpoint, and deployment on first run</span>
+</pre></div>
+</div>
+</section>
+<section id="tests">
+<h3>Tests<a class="headerlink" href="#tests" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>tests/<span class="w"> </span>-v
+</pre></div>
+</div>
+</section>
+<section id="documentation">
+<h3>Documentation<a class="headerlink" href="#documentation" title="Link to this heading">¶</a></h3>
+<p>Open the docs in your default browser:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sms-analyze<span class="w"> </span>docs
+</pre></div>
+</div>
+<p>To rebuild the docs from source (e.g. after code changes):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[docs]&quot;</span><span class="w">                    </span><span class="c1"># first time only</span>
+bash<span class="w"> </span>dev/sphinx/scripts/build_docs.sh
+</pre></div>
+</div>
+</section>
+<section id="use-as-a-library">
+<h3>Use as a library<a class="headerlink" href="#use-as-a-library" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">sms_analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_dataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sms_analysis.classification</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpamClassifier</span>
+
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">load_dataset</span><span class="p">(</span><span class="s2">&quot;assignment/3D8026C4.zip/SMSSpamCollection&quot;</span><span class="p">)</span>
+<span class="n">clf</span> <span class="o">=</span> <span class="n">SpamClassifier</span><span class="p">(</span><span class="s2">&quot;logistic_regression&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">texts</span><span class="p">,</span> <span class="n">dataset</span><span class="o">.</span><span class="n">labels</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">([</span><span class="s2">&quot;WINNER! Claim your free prize now!&quot;</span><span class="p">]))</span>
+</pre></div>
+</div>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+</section>
 </section>
 
         </article>
@@ -303,8 +618,49 @@ LLM-based embedding clustering on an SMS spam/ham dataset.</p>
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">AI Expert Case Study – Oliver Zehentleitner</a><ul>
+<li><a class="reference internal" href="#summary-of-the-task">Summary of the task</a></li>
+<li><a class="reference internal" href="#how-is-the-implementation-envisaged">How is the implementation envisaged?</a></li>
+<li><a class="reference internal" href="#dataset-preprocessing">Dataset &amp; preprocessing</a><ul>
+<li><a class="reference internal" href="#source-and-class-distribution">Source and class distribution</a></li>
+<li><a class="reference internal" href="#html-encoded-tokens-in-the-raw-data">HTML-encoded tokens in the raw data</a></li>
+<li><a class="reference internal" href="#real-urls-also-present">Real URLs also present</a></li>
+<li><a class="reference internal" href="#how-we-normalise">How we normalise</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#advantages-and-disadvantages-of-this-implementation-and-why-it-was-chosen">Advantages and disadvantages of this implementation, and why it was chosen</a><ul>
+<li><a class="reference internal" href="#classic-ml-part-1">Classic ML (Part 1)</a></li>
+<li><a class="reference internal" href="#genai-embeddings-part-2">GenAI / Embeddings (Part 2)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#how-does-the-implementation-work">How does the implementation work?</a><ul>
+<li><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li><a class="reference internal" href="#part-1-classic-ml-fully-local-no-setup-beyond-pip-install">Part 1 — Classic ML (fully local, no setup beyond pip install)</a></li>
+<li><a class="reference internal" href="#part-2-semantic-clustering-task-5">Part 2 — Semantic Clustering (Task 5)</a></li>
+<li><a class="reference internal" href="#tests">Tests</a></li>
+<li><a class="reference internal" href="#documentation">Documentation</a></li>
+<li><a class="reference internal" href="#use-as-a-library">Use as a library</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>
