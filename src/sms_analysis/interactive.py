@@ -21,9 +21,8 @@ import sys
 import time
 from pathlib import Path
 
-# Resolved once at import time — works for editable installs (dev) and may be
-# absent in a fully installed package (non-dev); handled gracefully below.
-_SCRIPTS_DIR = Path(__file__).parent.parent.parent / "scripts"
+# Shell scripts bundled with the package (setup_ollama.sh / .ps1).
+_SCRIPTS_DIR = Path(__file__).parent / "scripts"
 
 _ENV_FILE = Path(".env")
 

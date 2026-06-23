@@ -45,6 +45,9 @@ sms-analyze = "sms_analysis.cli:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+sms_analysis = ["scripts/*"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py311"

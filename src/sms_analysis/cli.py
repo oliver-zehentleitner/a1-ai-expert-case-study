@@ -100,6 +100,21 @@ def run_clustering(settings: Settings, args: argparse.Namespace) -> None:
     save_figure(fig, settings.outputs_dir / "semantic_clusters.png")
 
 
+def run_docs() -> None:
+    import webbrowser
+    from pathlib import Path
+
+    # docs/ lives at the project root — two levels above this package file.
+    docs_index = Path(__file__).parent.parent.parent / "docs" / "index.html"
+    if not docs_index.exists():
+        import sys
+        sys.exit(
+            "docs/index.html not found.\n"
+            "Build the docs first:  bash dev/sphinx/scripts/build_docs.sh"
+        )
+    webbrowser.open(docs_index.as_uri())
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="sms-analyze",
@@ -107,8 +122,8 @@ def main() -> None:
     )
     parser.add_argument(
         "task",
-        choices=["frequency", "comparison", "ngrams", "classification", "clustering", "all"],
-        help="Which analysis to run",
+        choices=["frequency", "comparison", "ngrams", "classification", "clustering", "docs", "all"],
+        help="Which analysis to run (use 'docs' to open the documentation)",
     )
 
     # --- classification options -------------------------------------------
@@ -155,6 +170,10 @@ def main() -> None:
     settings = Settings()
     configure_logging(settings.log_level)
     settings.outputs_dir.mkdir(parents=True, exist_ok=True)
+
+    if args.task == "docs":
+        run_docs()
+        return
 
     dispatch = {
         "frequency":      lambda: run_frequency(settings),
