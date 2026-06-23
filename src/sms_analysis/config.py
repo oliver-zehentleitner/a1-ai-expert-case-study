@@ -65,4 +65,5 @@ def configure_logging(level: str = "INFO") -> None:
         format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
+    logging.captureWarnings(True)   # routes warnings through logging, no source-snippet noise
     logging.getLogger("httpx").setLevel(logging.WARNING)
