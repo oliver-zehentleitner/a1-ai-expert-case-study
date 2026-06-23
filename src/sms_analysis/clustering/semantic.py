@@ -148,7 +148,7 @@ class SemanticClusterer:
         """Reduce to 2D for plotting.  Falls back to PCA if umap-learn is absent."""
         try:
             import umap
-            reducer = umap.UMAP(n_components=2, random_state=42, verbose=False)
+            reducer = umap.UMAP(n_components=2, random_state=42, n_jobs=1, verbose=False)
             return reducer.fit_transform(embeddings)
         except ImportError:
             logger.warning("umap-learn not installed — falling back to PCA for 2D reduction")
