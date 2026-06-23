@@ -76,45 +76,52 @@ The dataset contains 5,572 SMS messages labelled by hand:
 This imbalance is why accuracy is a meaningless metric here — a model that
 always predicts HAM scores 86 % without learning anything useful.
 
-### Researcher anonymisation — placeholders in the raw data
+### HTML-encoded tokens in the raw data
 
-The original dataset was published with privacy-preserving substitutions.
-Phone numbers, amounts, and other sensitive values were replaced with
-HTML-encoded placeholders:
+Several messages contain HTML-encoded entities such as `&lt;URL&gt;` or `&lt;#&gt;`.
+Their exact origin is unclear: they may be researcher-applied anonymisation
+placeholders, or they may be copy-paste artefacts from a smartphone browser —
+this would need to be verified against the original data collection notes.
+Regardless of origin, the observed tokens are:
 
-| Raw token | Meaning |
-|-----------|---------|
-| `&lt;#&gt;` | Any number (phone, amount, date, …) |
-| `&lt;URL&gt;` | A hyperlink |
+| Raw token | Observed meaning |
+|-----------|-----------------|
+| `&lt;#&gt;` | A number (phone, amount, date, …) |
+| `&lt;URL&gt;` | A hyperlink **or a username/handle** (e.g. `@ &lt;URL&gt;`) |
 | `&lt;DECIMAL&gt;` | A decimal number |
 | `&lt;NUMBER&gt;` | A numeric value |
 | `&amp;` | Ampersand |
-| Other `&lt;…&gt;` | Miscellaneous anonymised tokens |
+| Other `&lt;…&gt;` | Further tokens of unclear origin |
 
 These are **not** real HTML — they are ASCII representations of `<#>`, `<URL>`,
-etc., stored in a plain-text file and escaped by the researchers.
+etc., stored in a plain-text file.
 
 ### Real URLs also present
 
-In addition to the researcher placeholders, some messages contain actual URLs
-(`http://…`, `www.…`). These are strongly correlated with SPAM and must be
-handled consistently.
+A small number of messages contain actual URLs (`http://…`, `www.…`). In this
+dataset they appear exclusively in SPAM, which makes them a useful signal —
+though that correlation is a property of the sample, not a general truth.
+
+> **Note:** classifying a URL as malicious is a separate concern best handled
+> via URL blacklists or threat-intel feeds (IoC matching), not ML-based text
+> classification.
 
 ### How we normalise
 
-All of the above are collapsed to two semantic tokens before any vectorisation:
+All of the above are collapsed to three semantic tokens before any vectorisation:
 
 | Input | Normalised to |
 |-------|--------------|
+| `@ &lt;URL&gt;`, `@handle` | `__USER__` |
 | `&lt;URL&gt;`, `http://…`, `www.…` | `__URL__` |
 | `&lt;#&gt;`, `&lt;DECIMAL&gt;`, `&lt;NUMBER&gt;`, standalone digits | `__NUM__` |
 | `&amp;` | `and` |
 | Other `&lt;…&gt;` | removed |
 
-**Why tokens instead of deletion?** The *presence* of a URL or number carries
-signal — SPAM messages contain them at a much higher rate. Deleting them
-discards that signal. Replacing them with a consistent token lets TF-IDF and
-the embedding model learn from it.
+**Why tokens instead of deletion?** The *presence* of a URL, username mention,
+or number carries signal — SPAM messages contain them at a much higher rate.
+Deleting them discards that signal. Replacing them with a consistent token lets
+TF-IDF and the embedding model learn from it.
 
 **Train-serve consistency:** the normalisation step is the first stage of the
 serialised `sklearn.Pipeline`. When the trained model is loaded for inference,
