@@ -99,12 +99,9 @@ etc., stored in a plain-text file.
 ### Real URLs also present
 
 A small number of messages contain actual URLs (`http://…`, `www.…`). In this
-dataset they appear exclusively in SPAM, which makes them a useful signal —
-though that correlation is a property of the sample, not a general truth.
-
-> **Note:** classifying a URL as malicious is a separate concern best handled
-> via URL blacklists or threat-intel feeds (IoC matching), not ML-based text
-> classification.
+dataset they appear exclusively in SPAM — a correlation that is a property of
+this sample, not a general truth. Ham messages regularly contain URLs in the
+real world (shared links, meeting invites, etc.).
 
 ### How we normalise
 
@@ -119,9 +116,26 @@ All of the above are collapsed to three semantic tokens before any vectorisation
 | Other `&lt;…&gt;` | removed |
 
 **Why tokens instead of deletion?** The *presence* of a URL, username mention,
-or number carries signal — SPAM messages contain them at a much higher rate.
-Deleting them discards that signal. Replacing them with a consistent token lets
-TF-IDF and the embedding model learn from it.
+or number is a strong statistical signal — spam messages contain them at a much
+higher rate in this dataset. Deleting them discards that signal. Replacing them
+with a consistent token lets TF-IDF and the embedding model learn the pattern.
+
+**What ML does and does not decide here:**
+The model learns that *spam messages tend to contain URLs or phone numbers more
+often* — it does not evaluate whether a specific URL or number is malicious.
+That distinction matters in production:
+
+- A URL is not inherently spam or ham. A domain that is clean today can be
+  compromised tomorrow, and a spammer can register a fresh domain that appears
+  on no blacklist yet.
+- A phone number is not inherently spam or ham either. Numbers get recycled,
+  spoofed, or legitimately used by businesses.
+
+For high-quality spam filtering, URL and phone-number reputation checks belong
+in a dedicated layer — URL blacklists / threat-intel feeds (IoC matching) and
+carrier/number reputation services — not in the ML text classifier. The ML
+signal ("a URL is present") and the reputation check ("this specific URL is
+known-bad") complement each other and should not be conflated.
 
 **Train-serve consistency:** the normalisation step is the first stage of the
 serialised `sklearn.Pipeline`. When the trained model is loaded for inference,
