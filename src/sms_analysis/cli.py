@@ -1,48 +1,8 @@
 """Command-line interface: ``sms-analyze <task>``."""
 
 import argparse
-import sys
 
-from .config import EmbeddingProviderType, Settings, configure_logging
-
-
-def _build_provider(args: argparse.Namespace, settings: Settings):
-    """
-    Instantiate the embedding provider.
-
-    CLI flag ``--provider`` takes precedence over the ``SMS_EMBEDDING_PROVIDER``
-    env var.  API keys and endpoints are always read from the environment / .env
-    file — they are secrets and do not belong on the command line.
-    """
-    from .clustering.providers import AzureOpenAIProvider, OllamaProvider, OpenAIProvider
-
-    provider_type = EmbeddingProviderType(args.provider)
-
-    if provider_type == EmbeddingProviderType.OLLAMA:
-        return OllamaProvider(
-            model=settings.ollama_model,
-            base_url=settings.ollama_base_url,
-        )
-
-    if provider_type == EmbeddingProviderType.OPENAI:
-        if not settings.openai_api_key:
-            sys.exit("SMS_OPENAI_API_KEY is required for --provider openai")
-        return OpenAIProvider(api_key=settings.openai_api_key, model=settings.openai_model)
-
-    if provider_type == EmbeddingProviderType.AZURE:
-        if not settings.azure_openai_api_key or not settings.azure_openai_endpoint:
-            sys.exit(
-                "SMS_AZURE_OPENAI_API_KEY and SMS_AZURE_OPENAI_ENDPOINT "
-                "are required for --provider azure"
-            )
-        return AzureOpenAIProvider(
-            api_key=settings.azure_openai_api_key,
-            endpoint=settings.azure_openai_endpoint,
-            deployment=settings.azure_openai_deployment,
-            api_version=settings.azure_openai_api_version,
-        )
-
-    raise ValueError(f"Unknown provider: {provider_type}")
+from .config import Settings, configure_logging
 
 
 def run_frequency(settings: Settings) -> None:
@@ -120,10 +80,11 @@ def run_classification(settings: Settings, model_type: str) -> None:
 def run_clustering(settings: Settings, args: argparse.Namespace) -> None:
     from .clustering.semantic import SemanticClusterer
     from .data.loader import load_dataset
+    from .interactive import build_provider
     from .visualization.plots import plot_clusters_2d, save_figure
 
     dataset  = load_dataset(settings.data_path)
-    provider = _build_provider(args, settings)
+    provider = build_provider(args, settings)
 
     texts = dataset.texts
     if args.sample and args.sample < len(texts):
@@ -179,6 +140,14 @@ def main() -> None:
         default=None,
         metavar="INT",
         help="Embed only a random sample of N messages (default: all)",
+    )
+
+    # --- global UX flags -------------------------------------------------
+    parser.add_argument(
+        "--yes", "-y",
+        action="store_true",
+        default=False,
+        help="Auto-confirm all interactive prompts (start Ollama, save to .env, etc.)",
     )
 
     args = parser.parse_args()
