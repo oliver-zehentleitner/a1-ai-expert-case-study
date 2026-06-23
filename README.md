@@ -3,6 +3,8 @@
 Solution to the [A1 Telekom Austria AI Expert case study](./assignment/Fallbeispiel.pdf)
 ([job posting](https://www.isg.com/jobs/ad/AI_Expert-110091)).
 
+**[Full documentation](docs/index.html)** — CLI reference, API autodoc, architecture overview.
+
 The SMS dataset is located at
 [`./assignment/3D8026C4.zip/SMSSpamCollection`](./assignment/3D8026C4.zip/SMSSpamCollection),
 based on the publicly available
@@ -262,16 +264,17 @@ pytest tests/ -v
 
 ### Documentation
 
-```bash
-pip install -e ".[docs]"                    # first time only
-bash dev/sphinx/scripts/build_docs.sh
-```
-
-Opens at `docs/index.html`. Covers CLI reference, full API autodoc, and
-architecture overview. Or open it directly:
+Open the docs in your default browser:
 
 ```bash
 sms-analyze docs
+```
+
+To rebuild the docs from source (e.g. after code changes):
+
+```bash
+pip install -e ".[docs]"                    # first time only
+bash dev/sphinx/scripts/build_docs.sh
 ```
 
 ### Use as a library
