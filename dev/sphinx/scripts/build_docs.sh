@@ -24,6 +24,11 @@ sphinx-build -b html "$ROOT/dev/sphinx/config" "$ROOT/docs" "${SPHINX_ARGS[@]+"$
 # Required for GitHub Pages to serve Sphinx's _static/ directory correctly.
 touch "$ROOT/docs/.nojekyll"
 
+# Copy assignment files so relative links in README work when viewed from docs/.
+if [[ -d "$ROOT/assignment" ]]; then
+    cp -r "$ROOT/assignment" "$ROOT/docs/assignment"
+fi
+
 echo ""
 echo "Docs ready: docs/index.html"
 
