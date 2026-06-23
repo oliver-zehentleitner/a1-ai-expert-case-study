@@ -1,40 +1,13 @@
 """Command-line interface: ``sms-analyze <task>``."""
 
 import argparse
-import sys
-from pathlib import Path
 
-from .config import EmbeddingProviderType, Settings, configure_logging
-
-
-def _provider_from_settings(settings: Settings):
-    """Instantiate the configured embedding provider."""
-    from .clustering.providers import AzureOpenAIProvider, OllamaProvider, OpenAIProvider
-
-    if settings.embedding_provider == EmbeddingProviderType.OLLAMA:
-        return OllamaProvider(
-            model=settings.ollama_model,
-            base_url=settings.ollama_base_url,
-        )
-    if settings.embedding_provider == EmbeddingProviderType.OPENAI:
-        if not settings.openai_api_key:
-            sys.exit("SMS_OPENAI_API_KEY is not set")
-        return OpenAIProvider(api_key=settings.openai_api_key, model=settings.openai_model)
-    if settings.embedding_provider == EmbeddingProviderType.AZURE:
-        if not settings.azure_openai_api_key or not settings.azure_openai_endpoint:
-            sys.exit("SMS_AZURE_OPENAI_API_KEY and SMS_AZURE_OPENAI_ENDPOINT are required")
-        return AzureOpenAIProvider(
-            api_key=settings.azure_openai_api_key,
-            endpoint=settings.azure_openai_endpoint,
-            deployment=settings.azure_openai_deployment,
-            api_version=settings.azure_openai_api_version,
-        )
-    raise ValueError(f"Unknown provider: {settings.embedding_provider}")
+from .config import Settings, configure_logging
 
 
 def run_frequency(settings: Settings) -> None:
-    from .data.loader import load_dataset
     from .analysis.frequency import word_frequencies
+    from .data.loader import load_dataset
     from .visualization.plots import plot_word_frequencies, save_figure
 
     dataset = load_dataset(settings.data_path)
@@ -45,8 +18,8 @@ def run_frequency(settings: Settings) -> None:
 
 
 def run_comparison(settings: Settings) -> None:
-    from .data.loader import load_dataset
     from .analysis.comparison import log_odds_ratio
+    from .data.loader import load_dataset
     from .visualization.plots import plot_ham_spam_comparison, save_figure
 
     dataset = load_dataset(settings.data_path)
@@ -57,8 +30,8 @@ def run_comparison(settings: Settings) -> None:
 
 
 def run_ngrams(settings: Settings) -> None:
-    from .data.loader import load_dataset
     from .analysis.ngrams import top_ngrams
+    from .data.loader import load_dataset
     from .visualization.plots import plot_ngrams, save_figure
 
     dataset = load_dataset(settings.data_path)
@@ -70,7 +43,7 @@ def run_ngrams(settings: Settings) -> None:
         print(df.to_string(index=False))
 
 
-def run_classification(settings: Settings, model_type: str = "logistic_regression") -> None:
+def run_classification(settings: Settings, model_type: str) -> None:
     from sklearn.model_selection import train_test_split
 
     from .classification.evaluation import evaluate
@@ -86,9 +59,9 @@ def run_classification(settings: Settings, model_type: str = "logistic_regressio
     clf = SpamClassifier(model_type=model_type)  # type: ignore[arg-type]
     clf.fit(X_train, y_train)
 
-    y_pred = clf.predict(X_test)
+    y_pred  = clf.predict(X_test)
     y_proba = clf.predict_proba(X_test)
-    result = evaluate(y_test, y_pred, y_proba)
+    result  = evaluate(y_test, y_pred, y_proba)
 
     print(result.summary())
     print(result.report)
@@ -104,18 +77,26 @@ def run_classification(settings: Settings, model_type: str = "logistic_regressio
     clf.save(settings.outputs_dir / f"model_{model_type}.joblib")
 
 
-def run_clustering(settings: Settings) -> None:
+def run_clustering(settings: Settings, args: argparse.Namespace) -> None:
     from .clustering.semantic import SemanticClusterer
     from .data.loader import load_dataset
+    from .interactive import build_provider
     from .visualization.plots import plot_clusters_2d, save_figure
 
-    dataset = load_dataset(settings.data_path)
-    provider = _provider_from_settings(settings)
-    clusterer = SemanticClusterer(provider)
-    result = clusterer.fit(dataset.texts)
+    dataset  = load_dataset(settings.data_path)
+    provider = build_provider(args, settings)
+
+    texts = dataset.texts
+    if args.sample and args.sample < len(texts):
+        import random
+        random.seed(42)
+        texts = random.sample(texts, args.sample)
+
+    clusterer = SemanticClusterer(provider, n_clusters=args.k or None)
+    result    = clusterer.fit(texts)
 
     print(result.summary())
-    fig = plot_clusters_2d(result.embeddings_2d, result.labels, dataset.texts)
+    fig = plot_clusters_2d(result.embeddings_2d, result.labels, texts)
     save_figure(fig, settings.outputs_dir / "semantic_clusters.png")
 
 
@@ -129,12 +110,46 @@ def main() -> None:
         choices=["frequency", "comparison", "ngrams", "classification", "clustering", "all"],
         help="Which analysis to run",
     )
+
+    # --- classification options -------------------------------------------
     parser.add_argument(
         "--model",
         choices=["logistic_regression", "naive_bayes"],
         default="logistic_regression",
-        help="Classifier model (only for 'classification' task)",
+        help="Classifier model (default: logistic_regression)",
     )
+
+    # --- clustering options -----------------------------------------------
+    parser.add_argument(
+        "--provider",
+        choices=["ollama", "openai", "azure"],
+        default="ollama",
+        help="Embedding provider for clustering (default: ollama). "
+             "API keys are read from env / .env file.",
+    )
+    parser.add_argument(
+        "--k",
+        type=int,
+        default=None,
+        metavar="INT",
+        help="Number of clusters (default: auto-select via silhouette score)",
+    )
+    parser.add_argument(
+        "--sample",
+        type=int,
+        default=None,
+        metavar="INT",
+        help="Embed only a random sample of N messages (default: all)",
+    )
+
+    # --- global UX flags -------------------------------------------------
+    parser.add_argument(
+        "--yes", "-y",
+        action="store_true",
+        default=False,
+        help="Auto-confirm all interactive prompts (start Ollama, save to .env, etc.)",
+    )
+
     args = parser.parse_args()
 
     settings = Settings()
@@ -142,11 +157,11 @@ def main() -> None:
     settings.outputs_dir.mkdir(parents=True, exist_ok=True)
 
     dispatch = {
-        "frequency": lambda: run_frequency(settings),
-        "comparison": lambda: run_comparison(settings),
-        "ngrams": lambda: run_ngrams(settings),
+        "frequency":      lambda: run_frequency(settings),
+        "comparison":     lambda: run_comparison(settings),
+        "ngrams":         lambda: run_ngrams(settings),
         "classification": lambda: run_classification(settings, args.model),
-        "clustering": lambda: run_clustering(settings),
+        "clustering":     lambda: run_clustering(settings, args),
     }
 
     if args.task == "all":
