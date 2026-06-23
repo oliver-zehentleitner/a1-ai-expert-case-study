@@ -386,18 +386,18 @@
 </dd></dl>
 
 <p id="module-sms_analysis.data.preprocessing">Text preprocessing for the SMS Spam Collection dataset.</p>
-<p>The dataset was anonymised by its authors: numbers, decimals, and URLs were
-replaced with HTML-encoded placeholders such as <code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&amp;lt;URL&amp;gt;</span></code>.
-Raw URLs in non-anonymised messages were left in place.</p>
-<p>This module normalises both forms to consistent semantic tokens so that the
-model sees the same representation at training time and at inference time.
-Skipping this step at inference would cause train-serve skew: the model learns
-<code class="docutils literal notranslate"><span class="pre">__URL__</span></code> as a spam signal but never sees it in production.</p>
+<p>Several messages contain HTML-encoded tokens such as <code class="docutils literal notranslate"><span class="pre">&amp;lt;URL&amp;gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code>.
+Their origin is unclear (researcher anonymisation or smartphone copy-paste
+artefacts) and would need to be verified against the original collection notes.
+Some messages also contain raw URLs (<code class="docutils literal notranslate"><span class="pre">http://…</span></code>).</p>
+<p>This module normalises all observed forms to consistent semantic tokens so that
+the model sees the same representation at training time and at inference time.
+Skipping this step at inference would cause train-serve skew.</p>
 <section id="tokens-produced">
 <h3>Tokens produced<a class="headerlink" href="#tokens-produced" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">__URL__</span></code>   – any URL placeholder or real URL
-<code class="docutils literal notranslate"><span class="pre">__NUM__</span></code>   – any numeric placeholder or standalone number
-<code class="docutils literal notranslate"><span class="pre">__AMP__</span></code>   – HTML-encoded ampersand (<code class="docutils literal notranslate"><span class="pre">&amp;amp;</span></code>)</p>
+<p><code class="docutils literal notranslate"><span class="pre">__USER__</span></code>  – <code class="docutils literal notranslate"><span class="pre">&#64;</span> <span class="pre">&amp;lt;URL&amp;gt;</span></code> or <code class="docutils literal notranslate"><span class="pre">&#64;handle</span></code> (username / social-media mention)
+<code class="docutils literal notranslate"><span class="pre">__URL__</span></code>   – URL placeholder or real URL
+<code class="docutils literal notranslate"><span class="pre">__NUM__</span></code>   – numeric placeholder or standalone number</p>
 </section>
 <dl class="py function">
 <dt class="sig sig-object py" id="sms_analysis.data.preprocessing.preprocess">
@@ -417,7 +417,10 @@ preventing train-serve skew.</p>
 </dd>
 </dl>
 <p>Examples:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;Win &amp;lt;URL&amp;gt; now!&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;follow me @ &amp;lt;URL&amp;gt; ok?&quot;</span><span class="p">)</span>
+<span class="go">&#39;follow me __USER__ ok?&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;Win &amp;lt;URL&amp;gt; now!&quot;</span><span class="p">)</span>
 <span class="go">&#39;Win __URL__ now!&#39;</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;I sent you &amp;lt;#&amp;gt; bucks&quot;</span><span class="p">)</span>
