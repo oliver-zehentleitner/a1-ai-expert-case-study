@@ -26,6 +26,7 @@ touch "$ROOT/docs/.nojekyll"
 
 # Copy assignment files so relative links in README work when viewed from docs/.
 if [[ -d "$ROOT/assignment" ]]; then
+    rm -rf "$ROOT/docs/assignment"
     cp -r "$ROOT/assignment" "$ROOT/docs/assignment"
 fi
 
