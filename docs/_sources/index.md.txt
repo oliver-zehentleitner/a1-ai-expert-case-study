@@ -1,11 +1,8 @@
-```{include} ../../../README.md
-```
-
 ```{toctree}
 :maxdepth: 2
 :caption: Reference
-:hidden:
 
+overview
 cli
 api
 architecture

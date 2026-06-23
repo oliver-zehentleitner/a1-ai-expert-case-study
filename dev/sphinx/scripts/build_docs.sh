@@ -19,12 +19,23 @@ for arg in "$@"; do
     esac
 done
 
+# Stage README and assignment/ into the Sphinx source dir so myst-parser
+# resolves relative links (./assignment/…) correctly during the build.
+cp "$ROOT/README.md" "$ROOT/dev/sphinx/config/README.md"
+if [[ -d "$ROOT/assignment" ]]; then
+    cp -r "$ROOT/assignment" "$ROOT/dev/sphinx/config/assignment"
+fi
+
 sphinx-build -b html "$ROOT/dev/sphinx/config" "$ROOT/docs" "${SPHINX_ARGS[@]+"${SPHINX_ARGS[@]}"}"
+
+# Clean up staged files — they are build-time only, not source-controlled.
+rm -f "$ROOT/dev/sphinx/config/README.md"
+rm -rf "$ROOT/dev/sphinx/config/assignment"
 
 # Required for GitHub Pages to serve Sphinx's _static/ directory correctly.
 touch "$ROOT/docs/.nojekyll"
 
-# Copy assignment files so relative links in README work when viewed from docs/.
+# Copy assignment files into docs/ so links work when browsing docs/index.html.
 if [[ -d "$ROOT/assignment" ]]; then
     rm -rf "$ROOT/docs/assignment"
     cp -r "$ROOT/assignment" "$ROOT/docs/assignment"
