@@ -19,7 +19,7 @@ for arg in "$@"; do
     esac
 done
 
-sphinx-build -b html "$ROOT/dev/sphinx" "$ROOT/docs" "${SPHINX_ARGS[@]+"${SPHINX_ARGS[@]}"}"
+sphinx-build -b html "$ROOT/dev/sphinx/config" "$ROOT/docs" "${SPHINX_ARGS[@]+"${SPHINX_ARGS[@]}"}"
 
 # Required for GitHub Pages to serve Sphinx's _static/ directory correctly.
 touch "$ROOT/docs/.nojekyll"
