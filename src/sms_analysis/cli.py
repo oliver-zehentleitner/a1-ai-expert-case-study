@@ -251,3 +251,7 @@ def main() -> None:
             dispatch[name]()
     else:
         dispatch[args.task]()
+
+
+if __name__ == "__main__":
+    main()

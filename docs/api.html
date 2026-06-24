@@ -444,12 +444,12 @@ not anonymisation).</p>
 </section>
 <section id="tokens-produced">
 <h3>Tokens produced<a class="headerlink" href="#tokens-produced" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">__USER__</span></code>     – <code class="docutils literal notranslate"><span class="pre">&#64;</span> <span class="pre">&amp;lt;URL&amp;gt;</span></code> (NUS) or <code class="docutils literal notranslate"><span class="pre">&#64;handle</span></code> (typed) — a mention was present
-<code class="docutils literal notranslate"><span class="pre">__URL__</span></code>      – <code class="docutils literal notranslate"><span class="pre">&amp;lt;URL&amp;gt;</span></code> (NUS) or <code class="docutils literal notranslate"><span class="pre">http://…</span></code> / <code class="docutils literal notranslate"><span class="pre">www.…</span></code> (typed) — a URL was present
-<code class="docutils literal notranslate"><span class="pre">__NUM__</span></code>      – <code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code> / <code class="docutils literal notranslate"><span class="pre">&amp;lt;DECIMAL&amp;gt;</span></code> (NUS) or digit sequence (typed) — a number was present
-<code class="docutils literal notranslate"><span class="pre">__TIME__</span></code>     – <code class="docutils literal notranslate"><span class="pre">&amp;lt;TIME&amp;gt;</span></code> (NUS) — a time value was present
-<code class="docutils literal notranslate"><span class="pre">__EMAIL__</span></code>    – <code class="docutils literal notranslate"><span class="pre">&amp;lt;EMAIL&amp;gt;</span></code> (NUS) — an e-mail address was present
-<code class="docutils literal notranslate"><span class="pre">__CURRENCY__</span></code> – currency symbol (£, $, €, …) typed by user; locale-normalised</p>
+<p><code class="docutils literal notranslate"><span class="pre">TOKEN_USER</span></code>     – <code class="docutils literal notranslate"><span class="pre">&#64;</span> <span class="pre">&amp;lt;URL&amp;gt;</span></code> (NUS) or <code class="docutils literal notranslate"><span class="pre">&#64;handle</span></code> (typed) — a mention was present
+<code class="docutils literal notranslate"><span class="pre">TOKEN_URL</span></code>      – <code class="docutils literal notranslate"><span class="pre">&amp;lt;URL&amp;gt;</span></code> (NUS) or <code class="docutils literal notranslate"><span class="pre">http://…</span></code> / <code class="docutils literal notranslate"><span class="pre">www.…</span></code> (typed) — a URL was present
+<code class="docutils literal notranslate"><span class="pre">TOKEN_NUM</span></code>      – <code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code> / <code class="docutils literal notranslate"><span class="pre">&amp;lt;DECIMAL&amp;gt;</span></code> (NUS) or digit sequence (typed) — a number was present
+<code class="docutils literal notranslate"><span class="pre">TOKEN_TIME</span></code>     – <code class="docutils literal notranslate"><span class="pre">&amp;lt;TIME&amp;gt;</span></code> (NUS) — a time value was present
+<code class="docutils literal notranslate"><span class="pre">TOKEN_EMAIL</span></code>    – <code class="docutils literal notranslate"><span class="pre">&amp;lt;EMAIL&amp;gt;</span></code> (NUS) — an e-mail address was present
+<code class="docutils literal notranslate"><span class="pre">TOKEN_CURRENCY</span></code> – currency symbol (£, $, €, …) typed by user; locale-normalised</p>
 </section>
 <section id="character-normalisation">
 <h3>Character normalisation<a class="headerlink" href="#character-normalisation" title="Link to this heading">¶</a></h3>
@@ -481,25 +481,25 @@ preventing train-serve skew.</p>
 </dl>
 <p>Examples:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;follow me @ &amp;lt;URL&amp;gt; ok?&quot;</span><span class="p">)</span>
-<span class="go">&#39;follow me __USER__ ok?&#39;</span>
+<span class="go">&#39;follow me TOKEN_USER ok?&#39;</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;Win &amp;lt;URL&amp;gt; now!&quot;</span><span class="p">)</span>
-<span class="go">&#39;Win __URL__ now!&#39;</span>
+<span class="go">&#39;Win TOKEN_URL now!&#39;</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;I sent you &amp;lt;#&amp;gt; bucks&quot;</span><span class="p">)</span>
-<span class="go">&#39;I sent you __NUM__ bucks&#39;</span>
+<span class="go">&#39;I sent you TOKEN_NUM bucks&#39;</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;Check http://win-prize.com today&quot;</span><span class="p">)</span>
-<span class="go">&#39;Check __URL__ today&#39;</span>
+<span class="go">&#39;Check TOKEN_URL today&#39;</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;Good &amp;amp; bad&quot;</span><span class="p">)</span>
 <span class="go">&#39;Good  and  bad&#39;</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;Win £500 cash now!&quot;</span><span class="p">)</span>
-<span class="go">&#39;Win __CURRENCY__ __NUM__ cash now!&#39;</span>
+<span class="go">&#39;Win TOKEN_CURRENCY TOKEN_NUM cash now!&#39;</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;Claim your $1000 prize&quot;</span><span class="p">)</span>
-<span class="go">&#39;Claim your __CURRENCY__ __NUM__ prize&#39;</span>
+<span class="go">&#39;Claim your TOKEN_CURRENCY TOKEN_NUM prize&#39;</span>
 </pre></div>
 </div>
 </dd></dl>

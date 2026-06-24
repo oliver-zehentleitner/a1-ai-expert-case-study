@@ -240,11 +240,12 @@
 (<a class="reference external" href="https://www.isg.com/jobs/ad/AI_Expert-110091">job posting</a>).</p>
 <p><strong><a class="reference internal" href="#docs/index.html"><span class="xref myst">Full documentation</span></a></strong> — CLI reference, API autodoc, architecture overview.</p>
 <p>The SMS dataset is located at
-<a class="reference download internal" download="" href="_downloads/fb17ebe0a3fa398f276cd3ee4fd41621/SMSSpamCollection"><span class="xref download myst"><code class="docutils literal notranslate"><span class="pre">./assignment/3D8026C4.zip/SMSSpamCollection</span></code></span></a>,
+<a class="reference download internal" download="" href="_downloads/fb17ebe0a3fa398f276cd3ee4fd41621/SMSSpamCollection"><span class="xref download myst"><code class="docutils literal notranslate"><span class="pre">./assignment/3D8026C4.zip/SMSSpamCollection</span></code></span></a>
+(note: <code class="docutils literal notranslate"><span class="pre">3D8026C4.zip</span></code> is the extracted assignment directory, not a ZIP archive),
 based on the <em>SMS Spam Collection v.1</em> by Tiago A. Almeida and José María Gómez Hidalgo
 (<code class="docutils literal notranslate"><span class="pre">http://www.dt.fee.unicamp.br/~tiago/smsspamcollection/</span></code> — canonical citation URL,
-no longer reachable; it was a personal academic page at UNICAMP that disappeared when
-the author left the institution — the dataset itself is included in the assignment ZIP).
+kept for attribution; the dataset is also available via the
+<a class="reference external" href="https://archive.ics.uci.edu/dataset/228/sms+spam+collection">UCI Machine Learning Repository</a>).
 Used here for this case study only.</p>
 <hr class="docutils" />
 <section id="summary-of-the-task">
@@ -449,10 +450,10 @@ shared publicly without exposing personal data.</p>
 same way — they retain real phone numbers, prices, and URLs.</p>
 <p><strong>Why this matters for the model:</strong> these tokens are not spam indicators.
 A real number in a spam message and an anonymised number in a HAM message both
-map to <code class="docutils literal notranslate"><span class="pre">__NUM__</span></code> after normalisation. The ML signal is not the token itself
+map to <code class="docutils literal notranslate"><span class="pre">TOKEN_NUM</span></code> after normalisation. The ML signal is not the token itself
 but the <em>density and combination</em> of such tokens — spam messages are number-heavy
 (multiple phone numbers, shortcodes, prices, dates), while HAM messages
-containing <code class="docutils literal notranslate"><span class="pre">__NUM__</span></code> typically have just one or two occurrences.</p>
+containing <code class="docutils literal notranslate"><span class="pre">TOKEN_NUM</span></code> typically have just one or two occurrences.</p>
 </section>
 <section id="real-urls-also-present">
 <h3>Real URLs also present<a class="headerlink" href="#real-urls-also-present" title="Link to this heading">¶</a></h3>
@@ -488,27 +489,27 @@ change automatically without touching the raw data.</p>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&#64;</span> <span class="pre">&amp;lt;URL&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;handle</span></code></p></td>
 <td><p>NUS placeholder / typed</p></td>
-<td><p>→ <code class="docutils literal notranslate"><span class="pre">__USER__</span></code></p></td>
+<td><p>→ <code class="docutils literal notranslate"><span class="pre">TOKEN_USER</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;URL&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">http://…</span></code>, <code class="docutils literal notranslate"><span class="pre">www.…</span></code></p></td>
 <td><p>NUS placeholder / typed</p></td>
-<td><p>→ <code class="docutils literal notranslate"><span class="pre">__URL__</span></code></p></td>
+<td><p>→ <code class="docutils literal notranslate"><span class="pre">TOKEN_URL</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;DECIMAL&amp;gt;</span></code>, standalone digits (≥ 2)</p></td>
 <td><p>NUS placeholder / typed</p></td>
-<td><p>→ <code class="docutils literal notranslate"><span class="pre">__NUM__</span></code></p></td>
+<td><p>→ <code class="docutils literal notranslate"><span class="pre">TOKEN_NUM</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;TIME&amp;gt;</span></code></p></td>
 <td><p>NUS placeholder</p></td>
-<td><p>→ <code class="docutils literal notranslate"><span class="pre">__TIME__</span></code></p></td>
+<td><p>→ <code class="docutils literal notranslate"><span class="pre">TOKEN_TIME</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;EMAIL&amp;gt;</span></code></p></td>
 <td><p>NUS placeholder</p></td>
-<td><p>→ <code class="docutils literal notranslate"><span class="pre">__EMAIL__</span></code></p></td>
+<td><p>→ <code class="docutils literal notranslate"><span class="pre">TOKEN_EMAIL</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">£</span></code>, <code class="docutils literal notranslate"><span class="pre">$</span></code>, <code class="docutils literal notranslate"><span class="pre">€</span></code>, <code class="docutils literal notranslate"><span class="pre">¥</span></code>, <code class="docutils literal notranslate"><span class="pre">₹</span></code>, <code class="docutils literal notranslate"><span class="pre">₽</span></code>, <code class="docutils literal notranslate"><span class="pre">₩</span></code>, <code class="docutils literal notranslate"><span class="pre">₿</span></code></p></td>
 <td><p>typed</p></td>
-<td><p>→ <code class="docutils literal notranslate"><span class="pre">__CURRENCY__</span></code></p></td>
+<td><p>→ <code class="docutils literal notranslate"><span class="pre">TOKEN_CURRENCY</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;amp;</span></code></p></td>
 <td><p>HTML encoding of real <code class="docutils literal notranslate"><span class="pre">&amp;</span></code></p></td>
@@ -583,7 +584,7 @@ part of answering the case study responsibly.</p>
 Without normalisation, the model would learn “£ = spam signal” — which is true
 for UK data but useless (or misleading) for traffic where <code class="docutils literal notranslate"><span class="pre">€</span></code>, <code class="docutils literal notranslate"><span class="pre">$</span></code>, or <code class="docutils literal notranslate"><span class="pre">₹</span></code>
 are the local currency. The preprocessing step normalises all currency symbols
-to <code class="docutils literal notranslate"><span class="pre">__CURRENCY__</span></code>, so the model learns “a currency symbol before an amount =
+to <code class="docutils literal notranslate"><span class="pre">TOKEN_CURRENCY</span></code>, so the model learns “a currency symbol before an amount =
 spam signal” rather than anything tied to a specific currency. This is a
 deliberate decision to improve generalisability within the limits of the
 available data.</p>
@@ -704,8 +705,13 @@ sms-analyze<span class="w"> </span>classification<span class="w">   </span><span
 sms-analyze<span class="w"> </span>classification<span class="w"> </span>--model<span class="w"> </span>naive_bayes<span class="w">   </span><span class="c1"># baseline comparison</span>
 </pre></div>
 </div>
-<p>Generated plots and models are saved to <code class="docutils literal notranslate"><span class="pre">outputs/</span></code> (gitignored — transient).
-A committed snapshot of a clean run is in <code class="docutils literal notranslate"><span class="pre">solution/</span></code>.</p>
+<p>Generated plots and trained models are saved to <code class="docutils literal notranslate"><span class="pre">outputs/</span></code> by default.
+<code class="docutils literal notranslate"><span class="pre">.joblib</span></code> / <code class="docutils literal notranslate"><span class="pre">.pkl</span></code> model files and subdirectories inside <code class="docutils literal notranslate"><span class="pre">outputs/</span></code> are gitignored;
+top-level PNGs (from notebook and CLI runs) are committed.</p>
+<p>A committed reference snapshot is in <a class="reference internal" href="#solution/"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">solution/</span></code></span></a> — a clean Part 1 run
+(Tasks 1–4, both LR and NB). Task 5 (clustering) requires an Ollama installation
+and is not included; run <code class="docutils literal notranslate"><span class="pre">sms-analyze</span> <span class="pre">clustering</span></code> separately after completing the
+Ollama setup in <code class="docutils literal notranslate"><span class="pre">scripts/setup_ollama.sh</span></code>.</p>
 <p><strong>Or open the Jupyter notebooks:</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>jupyter<span class="w"> </span>notebook<span class="w"> </span>notebooks/
 </pre></div>

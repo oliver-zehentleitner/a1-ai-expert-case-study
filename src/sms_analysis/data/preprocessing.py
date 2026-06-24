@@ -46,12 +46,12 @@ not anonymisation).
 
 Tokens produced
 ---------------
-``__USER__``     – ``@ &lt;URL&gt;`` (NUS) or ``@handle`` (typed) — a mention was present
-``__URL__``      – ``&lt;URL&gt;`` (NUS) or ``http://…`` / ``www.…`` (typed) — a URL was present
-``__NUM__``      – ``&lt;#&gt;`` / ``&lt;DECIMAL&gt;`` (NUS) or digit sequence (typed) — a number was present
-``__TIME__``     – ``&lt;TIME&gt;`` (NUS) — a time value was present
-``__EMAIL__``    – ``&lt;EMAIL&gt;`` (NUS) — an e-mail address was present
-``__CURRENCY__`` – currency symbol (£, $, €, …) typed by user; locale-normalised
+``TOKEN_USER``     – ``@ &lt;URL&gt;`` (NUS) or ``@handle`` (typed) — a mention was present
+``TOKEN_URL``      – ``&lt;URL&gt;`` (NUS) or ``http://…`` / ``www.…`` (typed) — a URL was present
+``TOKEN_NUM``      – ``&lt;#&gt;`` / ``&lt;DECIMAL&gt;`` (NUS) or digit sequence (typed) — a number was present
+``TOKEN_TIME``     – ``&lt;TIME&gt;`` (NUS) — a time value was present
+``TOKEN_EMAIL``    – ``&lt;EMAIL&gt;`` (NUS) — an e-mail address was present
+``TOKEN_CURRENCY`` – currency symbol (£, $, €, …) typed by user; locale-normalised
 
 Character normalisation
 -----------------------
@@ -102,38 +102,38 @@ def preprocess(text: str) -> str:
     Examples::
 
         >>> preprocess("follow me @ &lt;URL&gt; ok?")
-        'follow me __USER__ ok?'
+        'follow me TOKEN_USER ok?'
 
         >>> preprocess("Win &lt;URL&gt; now!")
-        'Win __URL__ now!'
+        'Win TOKEN_URL now!'
 
         >>> preprocess("I sent you &lt;#&gt; bucks")
-        'I sent you __NUM__ bucks'
+        'I sent you TOKEN_NUM bucks'
 
         >>> preprocess("Check http://win-prize.com today")
-        'Check __URL__ today'
+        'Check TOKEN_URL today'
 
         >>> preprocess("Good &amp; bad")
         'Good  and  bad'
 
         >>> preprocess("Win £500 cash now!")
-        'Win __CURRENCY__ __NUM__ cash now!'
+        'Win TOKEN_CURRENCY TOKEN_NUM cash now!'
 
         >>> preprocess("Claim your $1000 prize")
-        'Claim your __CURRENCY__ __NUM__ prize'
+        'Claim your TOKEN_CURRENCY TOKEN_NUM prize'
     """
     text = _U_UMLAUT.sub("u", text)              # Ü/ü → u: shorthand for "you", removes spurious HAM bias
-    text = _AT_USER_HTML.sub("__USER__", text)   # @ <URL>: NUS mention placeholder → token (presence matters)
-    text = _AT_USER_RAW.sub("__USER__", text)    # @handle: typed mention → same token
-    text = _HTML_URL.sub("__URL__", text)        # NUS URL placeholder → token (presence matters)
-    text = _HTML_NUM.sub("__NUM__", text)        # NUS number placeholder → token (presence matters)
-    text = _HTML_TIME.sub("__TIME__", text)      # NUS time placeholder → token
-    text = _HTML_EMAIL.sub("__EMAIL__", text)    # NUS email placeholder → token
-    text = _HTML_AMP.sub(" and ", text)          # &amp; → and: restores real & character, not a placeholder
+    text = _AT_USER_HTML.sub("TOKEN_USER", text)     # @ <URL>: NUS mention placeholder → token (presence matters)
+    text = _AT_USER_RAW.sub("TOKEN_USER", text)      # @handle: typed mention → same token
+    text = _HTML_URL.sub("TOKEN_URL", text)          # NUS URL placeholder → token (presence matters)
+    text = _HTML_NUM.sub("TOKEN_NUM", text)          # NUS number placeholder → token (presence matters)
+    text = _HTML_TIME.sub("TOKEN_TIME", text)        # NUS time placeholder → token
+    text = _HTML_EMAIL.sub("TOKEN_EMAIL", text)      # NUS email placeholder → token
+    text = _HTML_AMP.sub(" and ", text)              # &amp; → and: restores real & character, not a placeholder
     for unknown in _HTML_LEFTOVER.findall(text):
         logger.warning("Unknown HTML-encoded token in preprocessing input: %r", unknown)
     text = _HTML_LEFTOVER.sub("", text)
-    text = _REAL_URL.sub("__URL__", text)
-    text = _CURRENCY.sub("__CURRENCY__ ", text)  # before STANDALONE_NR so £500 → __CURRENCY__ __NUM__
-    text = _STANDALONE_NR.sub("__NUM__", text)
+    text = _REAL_URL.sub("TOKEN_URL", text)
+    text = _CURRENCY.sub("TOKEN_CURRENCY ", text)    # before STANDALONE_NR so £500 → TOKEN_CURRENCY TOKEN_NUM
+    text = _STANDALONE_NR.sub("TOKEN_NUM", text)
     return text.strip()
