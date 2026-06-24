@@ -721,8 +721,13 @@ Use <code class="docutils literal notranslate"><span class="pre">--yes</span></c
 </pre></div>
 </div>
 <p>To rebuild the docs from source (e.g. after code changes):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[docs]&quot;</span><span class="w">                    </span><span class="c1"># first time only</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Linux / macOS</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[docs]&quot;</span><span class="w">                    </span><span class="c1"># first time only</span>
 bash<span class="w"> </span>dev/sphinx/scripts/build_docs.sh
+
+<span class="c1"># Windows (PowerShell)</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[docs]&quot;</span>
+.<span class="se">\d</span>ev<span class="se">\s</span>phinx<span class="se">\s</span>cripts<span class="se">\b</span>uild_docs.ps1
 </pre></div>
 </div>
 </section>
