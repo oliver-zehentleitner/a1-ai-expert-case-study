@@ -168,27 +168,22 @@ The full normalisation mapping:
 
 | Input pattern | Origin | Action |
 |--------------|--------|--------|
-| `@handle` | real user content | → `__USER__` |
-| `http://…`, `www.…` | real user content | → `__URL__` |
-| standalone digits (≥ 2) | real user content | → `__NUM__` |
-| `£`, `$`, `€`, `¥`, `₹`, `₽`, `₩`, `₿` | real user content | → `__CURRENCY__` |
-| `&amp;` | HTML encoding of real `&` | → `and` (restored) |
-| `Ü` / `ü` | Nokia keyboard artifact | → `u` |
-| `@ &lt;URL&gt;`, `&lt;URL&gt;`, `&lt;#&gt;`, `&lt;DECIMAL&gt;`, `&lt;TIME&gt;`, `&lt;EMAIL&gt;` | NUS anonymisation placeholder | removed |
-| Other `&lt;…&gt;` | unknown NUS placeholder | removed + WARNING logged |
+| `@ &lt;URL&gt;`, `@handle` | NUS placeholder / typed | → `__USER__` |
+| `&lt;URL&gt;`, `http://…`, `www.…` | NUS placeholder / typed | → `__URL__` |
+| `&lt;#&gt;`, `&lt;DECIMAL&gt;`, standalone digits (≥ 2) | NUS placeholder / typed | → `__NUM__` |
+| `&lt;TIME&gt;` | NUS placeholder | → `__TIME__` |
+| `&lt;EMAIL&gt;` | NUS placeholder | → `__EMAIL__` |
+| `£`, `$`, `€`, `¥`, `₹`, `₽`, `₩`, `₿` | typed | → `__CURRENCY__` |
+| `&amp;` | HTML encoding of real `&` | → `and` |
+| `Ü` / `ü` | shorthand for "you" | → `u` (avoids spurious HAM bias) |
+| Other `&lt;…&gt;` | unknown | removed + WARNING logged |
 
-**NUS tokens are removed, not replaced.** These placeholders stand for original
-content (a phone number, a URL, a time) that the NUS team stripped before
-publishing. The actual value is unknown to us. Replacing them with `__NUM__`
-or `__URL__` would invent content that was never in the original SMS. Removing
-them is the honest choice. All NUS tokens appear exclusively in HAM messages,
-so no SPAM signal is lost.
-
-**Real user content is tokenised, not deleted.** The *presence* of a URL, a
-number, or a currency symbol typed by the user is a meaningful signal —
-spam messages are token-dense in a way that HAM messages are not. Replacing
-them with a consistent placeholder lets TF-IDF learn
-the pattern while keeping the vocabulary clean.
+**Why tokens instead of deletion?** The *presence* of a URL or phone number is
+a meaningful classification signal — spam messages are dense with them, HAM
+messages are not. The specific URL or number is irrelevant for this task; for
+URL/number reputation a separate system (blacklists, IoC feeds) is needed.
+NUS anonymisation tokens (`&lt;URL&gt;`, `&lt;#&gt;`, …) map to the same tokens as their
+typed equivalents so the model learns the same pattern regardless of source.
 
 **What ML does and does not decide here:**
 The model learns that *spam messages tend to be dense with URLs and phone numbers* —
@@ -260,9 +255,9 @@ available data.
 
 The NUS corpus contains ~50 HAM messages where one or a few contributors used
 `Ü` as SMS shorthand for "you" (identical in meaning to the common `u`). The
-likely cause: a Nokia phone with a European language pack where the `U` key
-cycled to `Ü` on repeated press. In this dataset `Ü` appears 50 times in HAM
-and exactly zero times in SPAM.
+exact cause is unknown — one plausible explanation is a phone with a European
+keyboard layout, but this is not verified. What is clear from the data: `Ü`
+appears 50 times in HAM and exactly zero times in SPAM.
 
 Left unnormalised, the model would learn `ü` → HAM with very high confidence —
 a spurious correlation driven entirely by the typing habits of one person's

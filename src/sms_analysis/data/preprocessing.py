@@ -27,38 +27,42 @@ The raw dataset is never modified; normalisation is applied on demand via
 The sklearn classification pipeline also uses ``preprocess()`` as its first
 step, guaranteeing train-serve consistency.
 
-NUS anonymisation tokens — removal rationale
---------------------------------------------
+NUS anonymisation tokens — mapped to our own tokens
+----------------------------------------------------
 ``&lt;#&gt;``, ``&lt;DECIMAL&gt;``, ``&lt;TIME&gt;``, ``&lt;URL&gt;``, ``&lt;EMAIL&gt;`` are placeholders
-inserted by the NUS team *in place of* the original content.  The real phone
-number, time, URL, or e-mail is gone; we only have the type label.  Replacing
-them with ``__NUM__`` / ``__URL__`` / … would be inventing content that was
-never in the original SMS.  These tokens are stripped (removed) instead.
+inserted by the NUS team in place of the original content.  The specific value
+(which number, which URL) is gone, but the *type* is known and valuable:
+the **presence** of a URL or phone number in a message is a meaningful
+classification signal.  We map NUS tokens to the same tokens we use for real
+user content, so the model learns "message contains a URL" regardless of whether
+that URL was typed inline or anonymised by NUS.
 
-They are 100 % HAM-only, so no SPAM signal is lost.
+For the specific URL or number (reputation, blacklists, IoC matching) a
+separate system is needed — that is not a task for text classification.
 
-``&amp;`` is different: it is a standard HTML encoding of the literal ``&``
-character that *was* in the original SMS.  It is restored to ``and`` (not
-removed) because the character itself is real user content.
+``&amp;`` is a standard HTML encoding of the literal ``&`` character that *was*
+in the original SMS.  It is restored to ``and`` (character normalisation,
+not anonymisation).
 
 Tokens produced
 ---------------
-``__USER__``     – ``@handle`` (real mention typed by user)
-``__URL__``      – actual URL (``http://…``, ``www.…``) typed by user
-``__NUM__``      – standalone digit sequence (≥ 2 digits) typed by user
+``__USER__``     – ``@ &lt;URL&gt;`` (NUS) or ``@handle`` (typed) — a mention was present
+``__URL__``      – ``&lt;URL&gt;`` (NUS) or ``http://…`` / ``www.…`` (typed) — a URL was present
+``__NUM__``      – ``&lt;#&gt;`` / ``&lt;DECIMAL&gt;`` (NUS) or digit sequence (typed) — a number was present
+``__TIME__``     – ``&lt;TIME&gt;`` (NUS) — a time value was present
+``__EMAIL__``    – ``&lt;EMAIL&gt;`` (NUS) — an e-mail address was present
 ``__CURRENCY__`` – currency symbol (£, $, €, …) typed by user; locale-normalised
 
 Character normalisation
 -----------------------
-``Ü`` → ``u``  The NUS SMS Corpus contains ~50 HAM messages where one or a few
-contributors used ``Ü`` as SMS shorthand for "you" — identical in meaning to the
-common ``u``.  The likely cause is a Nokia phone with a European language pack
-where the ``U`` key cycled to ``Ü`` on repeat press.  In this dataset ``Ü``
-appears 50× in HAM and 0× in SPAM.  Keeping it as a distinct token would create
-a spurious correlation: the model would learn ``ü`` → HAM, making it trivially
-exploitable — a single ``Ü`` appended to a SPAM message could flip the
-classification.  Normalising ``Ü`` → ``u`` is semantically correct and closes
-this adversarial attack surface.
+``Ü`` → ``u``  About 50 HAM messages use ``Ü`` as shorthand for "you" —
+semantically identical to the common ``u``.  The exact cause is unknown; one
+plausible explanation is a phone with a European keyboard where the U key cycled
+to Ü, but this is not verified.  What is clear: ``Ü`` appears 50× in HAM and
+0× in SPAM.  Left unnormalised the model would learn ``ü`` → HAM — a spurious
+correlation that is trivially exploitable (appending a single ``Ü`` to a SPAM
+message could shift the prediction).  Normalising ``Ü`` → ``u`` is semantically
+correct and removes this bias.
 """
 
 import logging
@@ -98,13 +102,13 @@ def preprocess(text: str) -> str:
     Examples::
 
         >>> preprocess("follow me @ &lt;URL&gt; ok?")
-        'follow me ok?'
+        'follow me __USER__ ok?'
 
         >>> preprocess("Win &lt;URL&gt; now!")
-        'Win  now!'
+        'Win __URL__ now!'
 
         >>> preprocess("I sent you &lt;#&gt; bucks")
-        'I sent you  bucks'
+        'I sent you __NUM__ bucks'
 
         >>> preprocess("Check http://win-prize.com today")
         'Check __URL__ today'
@@ -118,13 +122,13 @@ def preprocess(text: str) -> str:
         >>> preprocess("Claim your $1000 prize")
         'Claim your __CURRENCY__ __NUM__ prize'
     """
-    text = _U_UMLAUT.sub("u", text)              # Ü/ü → u: Nokia keyboard artifact, closes spurious HAM signal
-    text = _AT_USER_HTML.sub("", text)           # @ <URL>: NUS placeholder, original mention unknown — remove
-    text = _AT_USER_RAW.sub("__USER__", text)    # @handle: real user content — keep as token
-    text = _HTML_URL.sub("", text)               # NUS placeholder — remove
-    text = _HTML_NUM.sub("", text)               # NUS placeholder — remove
-    text = _HTML_TIME.sub("", text)              # NUS placeholder — remove
-    text = _HTML_EMAIL.sub("", text)             # NUS placeholder — remove
+    text = _U_UMLAUT.sub("u", text)              # Ü/ü → u: shorthand for "you", removes spurious HAM bias
+    text = _AT_USER_HTML.sub("__USER__", text)   # @ <URL>: NUS mention placeholder → token (presence matters)
+    text = _AT_USER_RAW.sub("__USER__", text)    # @handle: typed mention → same token
+    text = _HTML_URL.sub("__URL__", text)        # NUS URL placeholder → token (presence matters)
+    text = _HTML_NUM.sub("__NUM__", text)        # NUS number placeholder → token (presence matters)
+    text = _HTML_TIME.sub("__TIME__", text)      # NUS time placeholder → token
+    text = _HTML_EMAIL.sub("__EMAIL__", text)    # NUS email placeholder → token
     text = _HTML_AMP.sub(" and ", text)          # &amp; → and: restores real & character, not a placeholder
     for unknown in _HTML_LEFTOVER.findall(text):
         logger.warning("Unknown HTML-encoded token in preprocessing input: %r", unknown)

@@ -4,15 +4,15 @@ from sms_analysis.data.preprocessing import preprocess
 
 
 class TestPreprocess:
-    def test_html_url_placeholder_removed(self):
-        # NUS anonymisation token — original content unknown, remove rather than invent
-        assert preprocess("Check &lt;URL&gt; now") == "Check  now"
+    def test_html_url_placeholder(self):
+        # NUS anonymisation token — presence of URL is the signal, map to __URL__
+        assert preprocess("Check &lt;URL&gt; now") == "Check __URL__ now"
 
-    def test_html_num_placeholder_removed(self):
-        assert preprocess("I sent &lt;#&gt; bucks") == "I sent  bucks"
+    def test_html_num_placeholder(self):
+        assert preprocess("I sent &lt;#&gt; bucks") == "I sent __NUM__ bucks"
 
-    def test_html_decimal_placeholder_removed(self):
-        assert preprocess("Amount: &lt;DECIMAL&gt;") == "Amount:"
+    def test_html_decimal_placeholder(self):
+        assert preprocess("Amount: &lt;DECIMAL&gt;") == "Amount: __NUM__"
 
     def test_html_amp(self):
         assert preprocess("fish &amp; chips") == "fish  and  chips".strip() or \

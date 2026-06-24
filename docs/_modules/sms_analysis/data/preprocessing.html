@@ -257,38 +257,42 @@
 <span class="sd">The sklearn classification pipeline also uses ``preprocess()`` as its first</span>
 <span class="sd">step, guaranteeing train-serve consistency.</span>
 
-<span class="sd">NUS anonymisation tokens — removal rationale</span>
-<span class="sd">--------------------------------------------</span>
+<span class="sd">NUS anonymisation tokens — mapped to our own tokens</span>
+<span class="sd">----------------------------------------------------</span>
 <span class="sd">``&amp;lt;#&amp;gt;``, ``&amp;lt;DECIMAL&amp;gt;``, ``&amp;lt;TIME&amp;gt;``, ``&amp;lt;URL&amp;gt;``, ``&amp;lt;EMAIL&amp;gt;`` are placeholders</span>
-<span class="sd">inserted by the NUS team *in place of* the original content.  The real phone</span>
-<span class="sd">number, time, URL, or e-mail is gone; we only have the type label.  Replacing</span>
-<span class="sd">them with ``__NUM__`` / ``__URL__`` / … would be inventing content that was</span>
-<span class="sd">never in the original SMS.  These tokens are stripped (removed) instead.</span>
+<span class="sd">inserted by the NUS team in place of the original content.  The specific value</span>
+<span class="sd">(which number, which URL) is gone, but the *type* is known and valuable:</span>
+<span class="sd">the **presence** of a URL or phone number in a message is a meaningful</span>
+<span class="sd">classification signal.  We map NUS tokens to the same tokens we use for real</span>
+<span class="sd">user content, so the model learns &quot;message contains a URL&quot; regardless of whether</span>
+<span class="sd">that URL was typed inline or anonymised by NUS.</span>
 
-<span class="sd">They are 100 % HAM-only, so no SPAM signal is lost.</span>
+<span class="sd">For the specific URL or number (reputation, blacklists, IoC matching) a</span>
+<span class="sd">separate system is needed — that is not a task for text classification.</span>
 
-<span class="sd">``&amp;amp;`` is different: it is a standard HTML encoding of the literal ``&amp;``</span>
-<span class="sd">character that *was* in the original SMS.  It is restored to ``and`` (not</span>
-<span class="sd">removed) because the character itself is real user content.</span>
+<span class="sd">``&amp;amp;`` is a standard HTML encoding of the literal ``&amp;`` character that *was*</span>
+<span class="sd">in the original SMS.  It is restored to ``and`` (character normalisation,</span>
+<span class="sd">not anonymisation).</span>
 
 <span class="sd">Tokens produced</span>
 <span class="sd">---------------</span>
-<span class="sd">``__USER__``     – ``@handle`` (real mention typed by user)</span>
-<span class="sd">``__URL__``      – actual URL (``http://…``, ``www.…``) typed by user</span>
-<span class="sd">``__NUM__``      – standalone digit sequence (≥ 2 digits) typed by user</span>
+<span class="sd">``__USER__``     – ``@ &amp;lt;URL&amp;gt;`` (NUS) or ``@handle`` (typed) — a mention was present</span>
+<span class="sd">``__URL__``      – ``&amp;lt;URL&amp;gt;`` (NUS) or ``http://…`` / ``www.…`` (typed) — a URL was present</span>
+<span class="sd">``__NUM__``      – ``&amp;lt;#&amp;gt;`` / ``&amp;lt;DECIMAL&amp;gt;`` (NUS) or digit sequence (typed) — a number was present</span>
+<span class="sd">``__TIME__``     – ``&amp;lt;TIME&amp;gt;`` (NUS) — a time value was present</span>
+<span class="sd">``__EMAIL__``    – ``&amp;lt;EMAIL&amp;gt;`` (NUS) — an e-mail address was present</span>
 <span class="sd">``__CURRENCY__`` – currency symbol (£, $, €, …) typed by user; locale-normalised</span>
 
 <span class="sd">Character normalisation</span>
 <span class="sd">-----------------------</span>
-<span class="sd">``Ü`` → ``u``  The NUS SMS Corpus contains ~50 HAM messages where one or a few</span>
-<span class="sd">contributors used ``Ü`` as SMS shorthand for &quot;you&quot; — identical in meaning to the</span>
-<span class="sd">common ``u``.  The likely cause is a Nokia phone with a European language pack</span>
-<span class="sd">where the ``U`` key cycled to ``Ü`` on repeat press.  In this dataset ``Ü``</span>
-<span class="sd">appears 50× in HAM and 0× in SPAM.  Keeping it as a distinct token would create</span>
-<span class="sd">a spurious correlation: the model would learn ``ü`` → HAM, making it trivially</span>
-<span class="sd">exploitable — a single ``Ü`` appended to a SPAM message could flip the</span>
-<span class="sd">classification.  Normalising ``Ü`` → ``u`` is semantically correct and closes</span>
-<span class="sd">this adversarial attack surface.</span>
+<span class="sd">``Ü`` → ``u``  About 50 HAM messages use ``Ü`` as shorthand for &quot;you&quot; —</span>
+<span class="sd">semantically identical to the common ``u``.  The exact cause is unknown; one</span>
+<span class="sd">plausible explanation is a phone with a European keyboard where the U key cycled</span>
+<span class="sd">to Ü, but this is not verified.  What is clear: ``Ü`` appears 50× in HAM and</span>
+<span class="sd">0× in SPAM.  Left unnormalised the model would learn ``ü`` → HAM — a spurious</span>
+<span class="sd">correlation that is trivially exploitable (appending a single ``Ü`` to a SPAM</span>
+<span class="sd">message could shift the prediction).  Normalising ``Ü`` → ``u`` is semantically</span>
+<span class="sd">correct and removes this bias.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
@@ -330,13 +334,13 @@
 <span class="sd">    Examples::</span>
 
 <span class="sd">        &gt;&gt;&gt; preprocess(&quot;follow me @ &amp;lt;URL&amp;gt; ok?&quot;)</span>
-<span class="sd">        &#39;follow me ok?&#39;</span>
+<span class="sd">        &#39;follow me __USER__ ok?&#39;</span>
 
 <span class="sd">        &gt;&gt;&gt; preprocess(&quot;Win &amp;lt;URL&amp;gt; now!&quot;)</span>
-<span class="sd">        &#39;Win  now!&#39;</span>
+<span class="sd">        &#39;Win __URL__ now!&#39;</span>
 
 <span class="sd">        &gt;&gt;&gt; preprocess(&quot;I sent you &amp;lt;#&amp;gt; bucks&quot;)</span>
-<span class="sd">        &#39;I sent you  bucks&#39;</span>
+<span class="sd">        &#39;I sent you __NUM__ bucks&#39;</span>
 
 <span class="sd">        &gt;&gt;&gt; preprocess(&quot;Check http://win-prize.com today&quot;)</span>
 <span class="sd">        &#39;Check __URL__ today&#39;</span>
@@ -350,13 +354,13 @@
 <span class="sd">        &gt;&gt;&gt; preprocess(&quot;Claim your $1000 prize&quot;)</span>
 <span class="sd">        &#39;Claim your __CURRENCY__ __NUM__ prize&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">_U_UMLAUT</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>              <span class="c1"># Ü/ü → u: Nokia keyboard artifact, closes spurious HAM signal</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">_AT_USER_HTML</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>           <span class="c1"># @ &lt;URL&gt;: NUS placeholder, original mention unknown — remove</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">_AT_USER_RAW</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__USER__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>    <span class="c1"># @handle: real user content — keep as token</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_URL</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>               <span class="c1"># NUS placeholder — remove</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_NUM</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>               <span class="c1"># NUS placeholder — remove</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_TIME</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>              <span class="c1"># NUS placeholder — remove</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_EMAIL</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>             <span class="c1"># NUS placeholder — remove</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_U_UMLAUT</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>              <span class="c1"># Ü/ü → u: shorthand for &quot;you&quot;, removes spurious HAM bias</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_AT_USER_HTML</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__USER__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>   <span class="c1"># @ &lt;URL&gt;: NUS mention placeholder → token (presence matters)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_AT_USER_RAW</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__USER__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>    <span class="c1"># @handle: typed mention → same token</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_URL</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__URL__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>        <span class="c1"># NUS URL placeholder → token (presence matters)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_NUM</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__NUM__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>        <span class="c1"># NUS number placeholder → token (presence matters)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_TIME</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__TIME__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>      <span class="c1"># NUS time placeholder → token</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_EMAIL</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__EMAIL__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>    <span class="c1"># NUS email placeholder → token</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_AMP</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot; and &quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>          <span class="c1"># &amp;amp; → and: restores real &amp; character, not a placeholder</span>
     <span class="k">for</span> <span class="n">unknown</span> <span class="ow">in</span> <span class="n">_HTML_LEFTOVER</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Unknown HTML-encoded token in preprocessing input: </span><span class="si">%r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">unknown</span><span class="p">)</span>
