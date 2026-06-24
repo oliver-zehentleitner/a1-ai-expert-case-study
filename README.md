@@ -417,6 +417,24 @@ sms-analyze clustering --provider azure
 pytest tests/ -v
 ```
 
+### Troubleshooting
+
+**`sms-analyze all` hangs or takes very long**
+
+On some Linux / macOS systems, OpenBLAS or OpenMP spawn more threads than the OS scheduler handles well inside a virtualenv, causing the process to stall. Fix:
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 sms-analyze all
+```
+
+**Windows (PowerShell)**
+```powershell
+$env:OPENBLAS_NUM_THREADS="1"
+$env:OMP_NUM_THREADS="1"
+$env:MKL_NUM_THREADS="1"
+sms-analyze all
+```
+
 ### Documentation
 
 Open the docs in your default browser:

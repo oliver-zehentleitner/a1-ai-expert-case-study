@@ -118,7 +118,7 @@ def cross_validate(
     # while F1-SPAM tracks only the minority class we actually care about detecting.
     f1_spam_scorer = make_scorer(f1_score, pos_label="spam")
     f1_scores = cross_val_score(
-        pipeline, texts, labels, cv=cv, scoring=f1_spam_scorer, n_jobs=-1
+        pipeline, texts, labels, cv=cv, scoring=f1_spam_scorer, n_jobs=1
     )
     logger.info(
         "%d-fold CV F1-SPAM: %.3f ± %.3f",

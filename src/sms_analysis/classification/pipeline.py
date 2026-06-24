@@ -120,14 +120,19 @@ class SpamClassifier:
     def save(self, path: Path) -> None:
         """Persist the trained pipeline to disk."""
         path.parent.mkdir(parents=True, exist_ok=True)
-        joblib.dump(self._require_pipeline(), path)
+        joblib.dump({"model_type": self.model_type, "pipeline": self._require_pipeline()}, path)
         logger.info("Model saved to %s", path)
 
     @classmethod
-    def load(cls, path: Path, model_type: ModelType = "logistic_regression") -> "SpamClassifier":
+    def load(cls, path: Path) -> "SpamClassifier":
         """Load a previously saved pipeline from disk."""
-        instance = cls(model_type=model_type)
-        instance._pipeline = joblib.load(path)
+        data = joblib.load(path)
+        if isinstance(data, dict):
+            instance = cls(model_type=data["model_type"])
+            instance._pipeline = data["pipeline"]
+        else:
+            instance = cls(model_type="logistic_regression")
+            instance._pipeline = data
         logger.info("Model loaded from %s", path)
         return instance
 
