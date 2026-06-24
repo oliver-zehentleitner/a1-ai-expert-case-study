@@ -68,6 +68,22 @@ class SMSDataset(BaseModel):
         return [preprocess(m.text) for m in self.spam]
 
     @property
+    def deduplicated(self) -> "SMSDataset":
+        """Return a new dataset with exact duplicate texts removed (first occurrence kept).
+
+        The raw file contains 403 duplicate rows (309 HAM / 94 SPAM) with no
+        conflicting labels. Deduplication prevents the same message from appearing
+        in both train and test splits, which would inflate evaluation metrics.
+        """
+        seen: set[str] = set()
+        unique: list[SMSMessage] = []
+        for m in self.messages:
+            if m.text not in seen:
+                seen.add(m.text)
+                unique.append(m)
+        return SMSDataset(messages=unique)
+
+    @property
     def labels(self) -> list[str]:
         return [m.label.value for m in self.messages]
 
