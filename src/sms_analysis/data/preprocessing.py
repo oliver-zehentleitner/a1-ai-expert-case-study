@@ -11,15 +11,15 @@ retain real phone numbers, prices, and links.
 
 Verified token inventory (all HAM-only):
 
-=================  =====
-Token              Count
-=================  =====
-``&lt;#&gt;``         214
-``&lt;DECIMAL&gt;``    21
-``&lt;TIME&gt;``        7
-``&lt;URL&gt;``         3
-``&lt;EMAIL&gt;``       1
-=================  =====
+=====================  =====
+Token                  Count
+=====================  =====
+``&lt;#&gt;``             214
+``&lt;DECIMAL&gt;``        21
+``&lt;TIME&gt;``            7
+``&lt;URL&gt;``             3
+``&lt;EMAIL&gt;``           1
+=====================  =====
 
 This module is the **single source of truth** for text normalisation.
 The raw dataset is never modified; normalisation is applied on demand via

@@ -103,7 +103,7 @@ and processed differently, which has direct consequences for preprocessing
 ### HTML-encoded tokens — investigation and findings
 
 The raw data contains HTML-encoded strings such as `&lt;URL&gt;` and `&lt;#&gt;`.
-Rather than assuming their origin, we verified it by counting how many
+Rather than assuming their origin, I verified it by counting how many
 messages contain each token type, broken down by class:
 
 | Token | Messages containing token | HAM | SPAM |

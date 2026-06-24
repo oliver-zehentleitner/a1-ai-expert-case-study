@@ -422,6 +422,32 @@ placeholders to protect the privacy of contributors.  SPAM messages (sourced
 from Grumbletext and other collections) were not anonymised in the same way and
 retain real phone numbers, prices, and links.</p>
 <p>Verified token inventory (all HAM-only):</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Token</p></th>
+<th class="head"><p>Count</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code></p></td>
+<td><p>214</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;DECIMAL&amp;gt;</span></code></p></td>
+<td><p>21</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;TIME&amp;gt;</span></code></p></td>
+<td><p>7</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;URL&amp;gt;</span></code></p></td>
+<td><p>3</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;EMAIL&amp;gt;</span></code></p></td>
+<td><p>1</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <p>This module is the <strong>single source of truth</strong> for text normalisation.
 The raw dataset is never modified; normalisation is applied on demand via
 <a class="reference internal" href="#sms_analysis.data.loader.SMSDataset.normalized_texts" title="sms_analysis.data.loader.SMSDataset.normalized_texts"><code class="xref py py-meth docutils literal notranslate"><span class="pre">normalized_texts()</span></code></a>.
