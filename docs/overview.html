@@ -479,52 +479,51 @@ change automatically without touching the raw data.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&#64;handle</span></code></p></td>
-<td><p>real user content</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&#64;</span> <span class="pre">&amp;lt;URL&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;handle</span></code></p></td>
+<td><p>NUS placeholder / typed</p></td>
 <td><p>→ <code class="docutils literal notranslate"><span class="pre">__USER__</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">http://…</span></code>, <code class="docutils literal notranslate"><span class="pre">www.…</span></code></p></td>
-<td><p>real user content</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;URL&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">http://…</span></code>, <code class="docutils literal notranslate"><span class="pre">www.…</span></code></p></td>
+<td><p>NUS placeholder / typed</p></td>
 <td><p>→ <code class="docutils literal notranslate"><span class="pre">__URL__</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>standalone digits (≥ 2)</p></td>
-<td><p>real user content</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;DECIMAL&amp;gt;</span></code>, standalone digits (≥ 2)</p></td>
+<td><p>NUS placeholder / typed</p></td>
 <td><p>→ <code class="docutils literal notranslate"><span class="pre">__NUM__</span></code></p></td>
 </tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;TIME&amp;gt;</span></code></p></td>
+<td><p>NUS placeholder</p></td>
+<td><p>→ <code class="docutils literal notranslate"><span class="pre">__TIME__</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;EMAIL&amp;gt;</span></code></p></td>
+<td><p>NUS placeholder</p></td>
+<td><p>→ <code class="docutils literal notranslate"><span class="pre">__EMAIL__</span></code></p></td>
+</tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">£</span></code>, <code class="docutils literal notranslate"><span class="pre">$</span></code>, <code class="docutils literal notranslate"><span class="pre">€</span></code>, <code class="docutils literal notranslate"><span class="pre">¥</span></code>, <code class="docutils literal notranslate"><span class="pre">₹</span></code>, <code class="docutils literal notranslate"><span class="pre">₽</span></code>, <code class="docutils literal notranslate"><span class="pre">₩</span></code>, <code class="docutils literal notranslate"><span class="pre">₿</span></code></p></td>
-<td><p>real user content</p></td>
+<td><p>typed</p></td>
 <td><p>→ <code class="docutils literal notranslate"><span class="pre">__CURRENCY__</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;amp;</span></code></p></td>
 <td><p>HTML encoding of real <code class="docutils literal notranslate"><span class="pre">&amp;</span></code></p></td>
-<td><p>→ <code class="docutils literal notranslate"><span class="pre">and</span></code> (restored)</p></td>
+<td><p>→ <code class="docutils literal notranslate"><span class="pre">and</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Ü</span></code> / <code class="docutils literal notranslate"><span class="pre">ü</span></code></p></td>
-<td><p>Nokia keyboard artifact</p></td>
-<td><p>→ <code class="docutils literal notranslate"><span class="pre">u</span></code></p></td>
+<td><p>shorthand for “you”</p></td>
+<td><p>→ <code class="docutils literal notranslate"><span class="pre">u</span></code> (avoids spurious HAM bias)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&#64;</span> <span class="pre">&amp;lt;URL&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;URL&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;DECIMAL&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;TIME&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;EMAIL&amp;gt;</span></code></p></td>
-<td><p>NUS anonymisation placeholder</p></td>
-<td><p>removed</p></td>
-</tr>
-<tr class="row-odd"><td><p>Other <code class="docutils literal notranslate"><span class="pre">&amp;lt;…&amp;gt;</span></code></p></td>
-<td><p>unknown NUS placeholder</p></td>
+<tr class="row-even"><td><p>Other <code class="docutils literal notranslate"><span class="pre">&amp;lt;…&amp;gt;</span></code></p></td>
+<td><p>unknown</p></td>
 <td><p>removed + WARNING logged</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p><strong>NUS tokens are removed, not replaced.</strong> These placeholders stand for original
-content (a phone number, a URL, a time) that the NUS team stripped before
-publishing. The actual value is unknown to us. Replacing them with <code class="docutils literal notranslate"><span class="pre">__NUM__</span></code>
-or <code class="docutils literal notranslate"><span class="pre">__URL__</span></code> would invent content that was never in the original SMS. Removing
-them is the honest choice. All NUS tokens appear exclusively in HAM messages,
-so no SPAM signal is lost.</p>
-<p><strong>Real user content is tokenised, not deleted.</strong> The <em>presence</em> of a URL, a
-number, or a currency symbol typed by the user is a meaningful signal —
-spam messages are token-dense in a way that HAM messages are not. Replacing
-them with a consistent placeholder lets TF-IDF learn
-the pattern while keeping the vocabulary clean.</p>
+<p><strong>Why tokens instead of deletion?</strong> The <em>presence</em> of a URL or phone number is
+a meaningful classification signal — spam messages are dense with them, HAM
+messages are not. The specific URL or number is irrelevant for this task; for
+URL/number reputation a separate system (blacklists, IoC feeds) is needed.
+NUS anonymisation tokens (<code class="docutils literal notranslate"><span class="pre">&amp;lt;URL&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code>, …) map to the same tokens as their
+typed equivalents so the model learns the same pattern regardless of source.</p>
 <p><strong>What ML does and does not decide here:</strong>
 The model learns that <em>spam messages tend to be dense with URLs and phone numbers</em> —
 it does not evaluate whether a specific URL or number is malicious.
@@ -584,9 +583,9 @@ available data.</p>
 <p><strong>Spurious correlations and adversarial robustness — a concrete example</strong></p>
 <p>The NUS corpus contains ~50 HAM messages where one or a few contributors used
 <code class="docutils literal notranslate"><span class="pre">Ü</span></code> as SMS shorthand for “you” (identical in meaning to the common <code class="docutils literal notranslate"><span class="pre">u</span></code>). The
-likely cause: a Nokia phone with a European language pack where the <code class="docutils literal notranslate"><span class="pre">U</span></code> key
-cycled to <code class="docutils literal notranslate"><span class="pre">Ü</span></code> on repeated press. In this dataset <code class="docutils literal notranslate"><span class="pre">Ü</span></code> appears 50 times in HAM
-and exactly zero times in SPAM.</p>
+exact cause is unknown — one plausible explanation is a phone with a European
+keyboard layout, but this is not verified. What is clear from the data: <code class="docutils literal notranslate"><span class="pre">Ü</span></code>
+appears 50 times in HAM and exactly zero times in SPAM.</p>
 <p>Left unnormalised, the model would learn <code class="docutils literal notranslate"><span class="pre">ü</span></code> → HAM with very high confidence —
 a spurious correlation driven entirely by the typing habits of one person’s
 phone hardware, not by anything meaningful about the content. This creates a
