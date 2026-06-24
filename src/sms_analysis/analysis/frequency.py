@@ -38,7 +38,7 @@ def tokenize(text: str, remove_stopwords: bool = True) -> list[str]:
         List of clean tokens.
     """
     text = preprocess(text)
-    text = text.lower().translate(str.maketrans("", "", string.punctuation))
+    text = text.lower().translate(str.maketrans("", "", string.punctuation.replace("_", "")))
     tokens = text.split()
     if remove_stopwords:
         tokens = [t for t in tokens if t not in _STOPWORDS]
