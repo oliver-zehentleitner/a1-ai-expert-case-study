@@ -241,9 +241,11 @@
 <p><strong><a class="reference internal" href="#docs/index.html"><span class="xref myst">Full documentation</span></a></strong> — CLI reference, API autodoc, architecture overview.</p>
 <p>The SMS dataset is located at
 <a class="reference download internal" download="" href="_downloads/fb17ebe0a3fa398f276cd3ee4fd41621/SMSSpamCollection"><span class="xref download myst"><code class="docutils literal notranslate"><span class="pre">./assignment/3D8026C4.zip/SMSSpamCollection</span></code></span></a>,
-based on the publicly available
-<a class="reference external" href="http://www.dt.fee.unicamp.br/~tiago/smsspamcollection/">SMS Spam Collection v.1</a>
-by Tiago A. Almeida and José María Gómez Hidalgo. Used here for this case study only.</p>
+based on the <em>SMS Spam Collection v.1</em> by Tiago A. Almeida and José María Gómez Hidalgo
+(<code class="docutils literal notranslate"><span class="pre">http://www.dt.fee.unicamp.br/~tiago/smsspamcollection/</span></code> — canonical citation URL,
+no longer reachable; it was a personal academic page at UNICAMP that disappeared when
+the author left the institution — the dataset itself is included in the assignment ZIP).
+Used here for this case study only.</p>
 <hr class="docutils" />
 <section id="summary-of-the-task">
 <h2>Summary of the task<a class="headerlink" href="#summary-of-the-task" title="Link to this heading">¶</a></h2>
@@ -472,41 +474,56 @@ change automatically without touching the raw data.</p>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Input pattern</p></th>
-<th class="head"><p>Normalised to</p></th>
+<th class="head"><p>Origin</p></th>
+<th class="head"><p>Action</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&#64;</span> <span class="pre">&amp;lt;URL&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;handle</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">__USER__</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&#64;handle</span></code></p></td>
+<td><p>real user content</p></td>
+<td><p>→ <code class="docutils literal notranslate"><span class="pre">__USER__</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;URL&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">http://…</span></code>, <code class="docutils literal notranslate"><span class="pre">www.…</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">__URL__</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">http://…</span></code>, <code class="docutils literal notranslate"><span class="pre">www.…</span></code></p></td>
+<td><p>real user content</p></td>
+<td><p>→ <code class="docutils literal notranslate"><span class="pre">__URL__</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;DECIMAL&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;NUMBER&amp;gt;</span></code>, standalone digits (≥2)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">__NUM__</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;TIME&amp;gt;</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">__TIME__</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;EMAIL&amp;gt;</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">__EMAIL__</span></code></p></td>
+<tr class="row-even"><td><p>standalone digits (≥ 2)</p></td>
+<td><p>real user content</p></td>
+<td><p>→ <code class="docutils literal notranslate"><span class="pre">__NUM__</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">£</span></code>, <code class="docutils literal notranslate"><span class="pre">$</span></code>, <code class="docutils literal notranslate"><span class="pre">€</span></code>, <code class="docutils literal notranslate"><span class="pre">¥</span></code>, <code class="docutils literal notranslate"><span class="pre">₹</span></code>, <code class="docutils literal notranslate"><span class="pre">₽</span></code>, <code class="docutils literal notranslate"><span class="pre">₩</span></code>, <code class="docutils literal notranslate"><span class="pre">₿</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">__CURRENCY__</span></code></p></td>
+<td><p>real user content</p></td>
+<td><p>→ <code class="docutils literal notranslate"><span class="pre">__CURRENCY__</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;amp;</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">and</span></code></p></td>
+<td><p>HTML encoding of real <code class="docutils literal notranslate"><span class="pre">&amp;</span></code></p></td>
+<td><p>→ <code class="docutils literal notranslate"><span class="pre">and</span></code> (restored)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Ü</span></code> / <code class="docutils literal notranslate"><span class="pre">ü</span></code></p></td>
+<td><p>Nokia keyboard artifact</p></td>
+<td><p>→ <code class="docutils literal notranslate"><span class="pre">u</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&#64;</span> <span class="pre">&amp;lt;URL&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;URL&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;DECIMAL&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;TIME&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;EMAIL&amp;gt;</span></code></p></td>
+<td><p>NUS anonymisation placeholder</p></td>
+<td><p>removed</p></td>
 </tr>
 <tr class="row-odd"><td><p>Other <code class="docutils literal notranslate"><span class="pre">&amp;lt;…&amp;gt;</span></code></p></td>
-<td><p>removed</p></td>
+<td><p>unknown NUS placeholder</p></td>
+<td><p>removed + WARNING logged</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p><strong>Why tokens instead of deletion?</strong> The <em>presence</em> of a URL, username mention,
-or number is a strong statistical signal — spam messages are token-dense in a
-way that HAM messages are not. Deleting them discards that signal. Replacing
-them with a consistent placeholder lets TF-IDF and the embedding model learn
+<p><strong>NUS tokens are removed, not replaced.</strong> These placeholders stand for original
+content (a phone number, a URL, a time) that the NUS team stripped before
+publishing. The actual value is unknown to us. Replacing them with <code class="docutils literal notranslate"><span class="pre">__NUM__</span></code>
+or <code class="docutils literal notranslate"><span class="pre">__URL__</span></code> would invent content that was never in the original SMS. Removing
+them is the honest choice. All NUS tokens appear exclusively in HAM messages,
+so no SPAM signal is lost.</p>
+<p><strong>Real user content is tokenised, not deleted.</strong> The <em>presence</em> of a URL, a
+number, or a currency symbol typed by the user is a meaningful signal —
+spam messages are token-dense in a way that HAM messages are not. Replacing
+them with a consistent placeholder lets TF-IDF learn
 the pattern while keeping the vocabulary clean.</p>
 <p><strong>What ML does and does not decide here:</strong>
 The model learns that <em>spam messages tend to be dense with URLs and phone numbers</em> —
@@ -721,13 +738,15 @@ Use <code class="docutils literal notranslate"><span class="pre">--yes</span></c
 </pre></div>
 </div>
 <p>To rebuild the docs from source (e.g. after code changes):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[docs]&quot;</span><span class="w">   </span><span class="c1"># first time only (Linux / macOS / Windows)</span>
+</pre></div>
+</div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Linux / macOS</span>
-pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[docs]&quot;</span><span class="w">                    </span><span class="c1"># first time only</span>
 bash<span class="w"> </span>dev/sphinx/scripts/build_docs.sh
-
-<span class="c1"># Windows (PowerShell)</span>
-pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[docs]&quot;</span>
-.<span class="se">\d</span>ev<span class="se">\s</span>phinx<span class="se">\s</span>cripts<span class="se">\b</span>uild_docs.ps1
+</pre></div>
+</div>
+<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="c"># Windows (PowerShell)</span>
+<span class="p">.\</span><span class="n">dev</span><span class="p">\</span><span class="n">sphinx</span><span class="p">\</span><span class="n">scripts</span><span class="p">\</span><span class="n">build_docs</span><span class="p">.</span><span class="n">ps1</span>
 </pre></div>
 </div>
 </section>

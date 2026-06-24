@@ -7,9 +7,11 @@ Solution to the [A1 Telekom Austria AI Expert case study](./assignment/Fallbeisp
 
 The SMS dataset is located at
 [`./assignment/3D8026C4.zip/SMSSpamCollection`](./assignment/3D8026C4.zip/SMSSpamCollection),
-based on the publicly available
-[SMS Spam Collection v.1](http://www.dt.fee.unicamp.br/~tiago/smsspamcollection/)
-by Tiago A. Almeida and José María Gómez Hidalgo. Used here for this case study only.
+based on the *SMS Spam Collection v.1* by Tiago A. Almeida and José María Gómez Hidalgo
+(`http://www.dt.fee.unicamp.br/~tiago/smsspamcollection/` — canonical citation URL,
+no longer reachable; it was a personal academic page at UNICAMP that disappeared when
+the author left the institution — the dataset itself is included in the assignment ZIP).
+Used here for this case study only.
 
 ---
 
@@ -164,21 +166,28 @@ change automatically without touching the raw data.
 
 The full normalisation mapping:
 
-| Input pattern | Normalised to |
-|--------------|--------------|
-| `@ &lt;URL&gt;`, `@handle` | `__USER__` |
-| `&lt;URL&gt;`, `http://…`, `www.…` | `__URL__` |
-| `&lt;#&gt;`, `&lt;DECIMAL&gt;`, `&lt;NUMBER&gt;`, standalone digits (≥2) | `__NUM__` |
-| `&lt;TIME&gt;` | `__TIME__` |
-| `&lt;EMAIL&gt;` | `__EMAIL__` |
-| `£`, `$`, `€`, `¥`, `₹`, `₽`, `₩`, `₿` | `__CURRENCY__` |
-| `&amp;` | `and` |
-| Other `&lt;…&gt;` | removed |
+| Input pattern | Origin | Action |
+|--------------|--------|--------|
+| `@handle` | real user content | → `__USER__` |
+| `http://…`, `www.…` | real user content | → `__URL__` |
+| standalone digits (≥ 2) | real user content | → `__NUM__` |
+| `£`, `$`, `€`, `¥`, `₹`, `₽`, `₩`, `₿` | real user content | → `__CURRENCY__` |
+| `&amp;` | HTML encoding of real `&` | → `and` (restored) |
+| `Ü` / `ü` | Nokia keyboard artifact | → `u` |
+| `@ &lt;URL&gt;`, `&lt;URL&gt;`, `&lt;#&gt;`, `&lt;DECIMAL&gt;`, `&lt;TIME&gt;`, `&lt;EMAIL&gt;` | NUS anonymisation placeholder | removed |
+| Other `&lt;…&gt;` | unknown NUS placeholder | removed + WARNING logged |
 
-**Why tokens instead of deletion?** The *presence* of a URL, username mention,
-or number is a strong statistical signal — spam messages are token-dense in a
-way that HAM messages are not. Deleting them discards that signal. Replacing
-them with a consistent placeholder lets TF-IDF and the embedding model learn
+**NUS tokens are removed, not replaced.** These placeholders stand for original
+content (a phone number, a URL, a time) that the NUS team stripped before
+publishing. The actual value is unknown to us. Replacing them with `__NUM__`
+or `__URL__` would invent content that was never in the original SMS. Removing
+them is the honest choice. All NUS tokens appear exclusively in HAM messages,
+so no SPAM signal is lost.
+
+**Real user content is tokenised, not deleted.** The *presence* of a URL, a
+number, or a currency symbol typed by the user is a meaningful signal —
+spam messages are token-dense in a way that HAM messages are not. Replacing
+them with a consistent placeholder lets TF-IDF learn
 the pattern while keeping the vocabulary clean.
 
 **What ML does and does not decide here:**
@@ -417,12 +426,16 @@ sms-analyze docs
 To rebuild the docs from source (e.g. after code changes):
 
 ```bash
-# Linux / macOS
-pip install -e ".[docs]"                    # first time only
-bash dev/sphinx/scripts/build_docs.sh
+pip install -e ".[docs]"   # first time only (Linux / macOS / Windows)
+```
 
+```bash
+# Linux / macOS
+bash dev/sphinx/scripts/build_docs.sh
+```
+
+```powershell
 # Windows (PowerShell)
-pip install -e ".[docs]"
 .\dev\sphinx\scripts\build_docs.ps1
 ```
 

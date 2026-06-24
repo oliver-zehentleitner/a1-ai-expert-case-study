@@ -427,17 +427,24 @@ The raw dataset is never modified; normalisation is applied on demand via
 <a class="reference internal" href="#sms_analysis.data.loader.SMSDataset.normalized_texts" title="sms_analysis.data.loader.SMSDataset.normalized_texts"><code class="xref py py-meth docutils literal notranslate"><span class="pre">normalized_texts()</span></code></a>.
 The sklearn classification pipeline also uses <code class="docutils literal notranslate"><span class="pre">preprocess()</span></code> as its first
 step, guaranteeing train-serve consistency.</p>
+<section id="nus-anonymisation-tokens-removal-rationale">
+<h3>NUS anonymisation tokens — removal rationale<a class="headerlink" href="#nus-anonymisation-tokens-removal-rationale" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;DECIMAL&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;TIME&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;URL&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;EMAIL&amp;gt;</span></code> are placeholders
+inserted by the NUS team <em>in place of</em> the original content.  The real phone
+number, time, URL, or e-mail is gone; we only have the type label.  Replacing
+them with <code class="docutils literal notranslate"><span class="pre">__NUM__</span></code> / <code class="docutils literal notranslate"><span class="pre">__URL__</span></code> / … would be inventing content that was
+never in the original SMS.  These tokens are stripped (removed) instead.</p>
+<p>They are 100 % HAM-only, so no SPAM signal is lost.</p>
+<p><code class="docutils literal notranslate"><span class="pre">&amp;amp;</span></code> is different: it is a standard HTML encoding of the literal <code class="docutils literal notranslate"><span class="pre">&amp;</span></code>
+character that <em>was</em> in the original SMS.  It is restored to <code class="docutils literal notranslate"><span class="pre">and</span></code> (not
+removed) because the character itself is real user content.</p>
+</section>
 <section id="tokens-produced">
 <h3>Tokens produced<a class="headerlink" href="#tokens-produced" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">__USER__</span></code>      – <code class="docutils literal notranslate"><span class="pre">&#64;</span> <span class="pre">&amp;lt;URL&amp;gt;</span></code> or <code class="docutils literal notranslate"><span class="pre">&#64;handle</span></code> (username / social-media mention)
-<code class="docutils literal notranslate"><span class="pre">__URL__</span></code>       – URL placeholder or real URL
-<code class="docutils literal notranslate"><span class="pre">__NUM__</span></code>       – numeric / decimal / hash placeholder or standalone number
-<code class="docutils literal notranslate"><span class="pre">__TIME__</span></code>      – time placeholder from NUS anonymisation
-<code class="docutils literal notranslate"><span class="pre">__EMAIL__</span></code>     – e-mail address placeholder from NUS anonymisation
-<code class="docutils literal notranslate"><span class="pre">__CURRENCY__</span></code>  – any currency symbol (£, $, €, ¥, ₹, …), normalised to remove</p>
-<blockquote>
-<div><p>locale bias; amounts following the symbol are caught by <code class="docutils literal notranslate"><span class="pre">__NUM__</span></code></p>
-</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">__USER__</span></code>     – <code class="docutils literal notranslate"><span class="pre">&#64;handle</span></code> (real mention typed by user)
+<code class="docutils literal notranslate"><span class="pre">__URL__</span></code>      – actual URL (<code class="docutils literal notranslate"><span class="pre">http://…</span></code>, <code class="docutils literal notranslate"><span class="pre">www.…</span></code>) typed by user
+<code class="docutils literal notranslate"><span class="pre">__NUM__</span></code>      – standalone digit sequence (≥ 2 digits) typed by user
+<code class="docutils literal notranslate"><span class="pre">__CURRENCY__</span></code> – currency symbol (£, $, €, …) typed by user; locale-normalised</p>
 </section>
 <section id="character-normalisation">
 <h3>Character normalisation<a class="headerlink" href="#character-normalisation" title="Link to this heading">¶</a></h3>
@@ -470,19 +477,19 @@ preventing train-serve skew.</p>
 </dl>
 <p>Examples:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;follow me @ &amp;lt;URL&amp;gt; ok?&quot;</span><span class="p">)</span>
-<span class="go">&#39;follow me __USER__ ok?&#39;</span>
+<span class="go">&#39;follow me ok?&#39;</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;Win &amp;lt;URL&amp;gt; now!&quot;</span><span class="p">)</span>
-<span class="go">&#39;Win __URL__ now!&#39;</span>
+<span class="go">&#39;Win  now!&#39;</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;I sent you &amp;lt;#&amp;gt; bucks&quot;</span><span class="p">)</span>
-<span class="go">&#39;I sent you __NUM__ bucks&#39;</span>
+<span class="go">&#39;I sent you  bucks&#39;</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;Check http://win-prize.com today&quot;</span><span class="p">)</span>
 <span class="go">&#39;Check __URL__ today&#39;</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;Good &amp;amp; bad&quot;</span><span class="p">)</span>
-<span class="go">&#39;Good and bad&#39;</span>
+<span class="go">&#39;Good  and  bad&#39;</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;Win £500 cash now!&quot;</span><span class="p">)</span>
 <span class="go">&#39;Win __CURRENCY__ __NUM__ cash now!&#39;</span>
@@ -1576,6 +1583,7 @@ to <code class="docutils literal notranslate"><span class="pre">.env</span></cod
 </ul>
 </li>
 <li><a class="reference internal" href="#sms_analysis.data.loader.load_dataset"><code class="docutils literal notranslate"><span class="pre">load_dataset()</span></code></a></li>
+<li><a class="reference internal" href="#nus-anonymisation-tokens-removal-rationale">NUS anonymisation tokens — removal rationale</a></li>
 <li><a class="reference internal" href="#tokens-produced">Tokens produced</a></li>
 <li><a class="reference internal" href="#character-normalisation">Character normalisation</a></li>
 <li><a class="reference internal" href="#sms_analysis.data.preprocessing.preprocess"><code class="docutils literal notranslate"><span class="pre">preprocess()</span></code></a></li>

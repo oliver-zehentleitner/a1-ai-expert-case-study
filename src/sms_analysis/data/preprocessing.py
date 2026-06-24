@@ -27,15 +27,26 @@ The raw dataset is never modified; normalisation is applied on demand via
 The sklearn classification pipeline also uses ``preprocess()`` as its first
 step, guaranteeing train-serve consistency.
 
+NUS anonymisation tokens — removal rationale
+--------------------------------------------
+``&lt;#&gt;``, ``&lt;DECIMAL&gt;``, ``&lt;TIME&gt;``, ``&lt;URL&gt;``, ``&lt;EMAIL&gt;`` are placeholders
+inserted by the NUS team *in place of* the original content.  The real phone
+number, time, URL, or e-mail is gone; we only have the type label.  Replacing
+them with ``__NUM__`` / ``__URL__`` / … would be inventing content that was
+never in the original SMS.  These tokens are stripped (removed) instead.
+
+They are 100 % HAM-only, so no SPAM signal is lost.
+
+``&amp;`` is different: it is a standard HTML encoding of the literal ``&``
+character that *was* in the original SMS.  It is restored to ``and`` (not
+removed) because the character itself is real user content.
+
 Tokens produced
 ---------------
-``__USER__``      – ``@ &lt;URL&gt;`` or ``@handle`` (username / social-media mention)
-``__URL__``       – URL placeholder or real URL
-``__NUM__``       – numeric / decimal / hash placeholder or standalone number
-``__TIME__``      – time placeholder from NUS anonymisation
-``__EMAIL__``     – e-mail address placeholder from NUS anonymisation
-``__CURRENCY__``  – any currency symbol (£, $, €, ¥, ₹, …), normalised to remove
-                    locale bias; amounts following the symbol are caught by ``__NUM__``
+``__USER__``     – ``@handle`` (real mention typed by user)
+``__URL__``      – actual URL (``http://…``, ``www.…``) typed by user
+``__NUM__``      – standalone digit sequence (≥ 2 digits) typed by user
+``__CURRENCY__`` – currency symbol (£, $, €, …) typed by user; locale-normalised
 
 Character normalisation
 -----------------------
@@ -50,7 +61,10 @@ classification.  Normalising ``Ü`` → ``u`` is semantically correct and closes
 this adversarial attack surface.
 """
 
+import logging
 import re
+
+logger = logging.getLogger(__name__)
 
 # Pre-compiled patterns — compiled once at import time.
 # Order matters: __USER__ must be matched before the general __URL__ pass.
@@ -61,7 +75,7 @@ _HTML_NUM      = re.compile(r'&lt;(?:#|DECIMAL|NUMBER)&gt;',  re.IGNORECASE)
 _HTML_TIME     = re.compile(r'&lt;TIME&gt;',                  re.IGNORECASE)
 _HTML_EMAIL    = re.compile(r'&lt;EMAIL&gt;',                 re.IGNORECASE)
 _HTML_AMP      = re.compile(r'&amp;',                         re.IGNORECASE)
-_HTML_LEFTOVER = re.compile(r'&lt;.*?&gt;',                   re.IGNORECASE)
+_HTML_LEFTOVER = re.compile(r'(&lt;.*?&gt;)',                  re.IGNORECASE)
 _REAL_URL      = re.compile(r'https?://\S+|www\.\S+',         re.IGNORECASE)
 _CURRENCY      = re.compile(r'[£$€¥₹₽₩₿]')
 _STANDALONE_NR = re.compile(r'\b\d{2,}\b')
@@ -84,19 +98,19 @@ def preprocess(text: str) -> str:
     Examples::
 
         >>> preprocess("follow me @ &lt;URL&gt; ok?")
-        'follow me __USER__ ok?'
+        'follow me ok?'
 
         >>> preprocess("Win &lt;URL&gt; now!")
-        'Win __URL__ now!'
+        'Win  now!'
 
         >>> preprocess("I sent you &lt;#&gt; bucks")
-        'I sent you __NUM__ bucks'
+        'I sent you  bucks'
 
         >>> preprocess("Check http://win-prize.com today")
         'Check __URL__ today'
 
         >>> preprocess("Good &amp; bad")
-        'Good and bad'
+        'Good  and  bad'
 
         >>> preprocess("Win £500 cash now!")
         'Win __CURRENCY__ __NUM__ cash now!'
@@ -104,14 +118,16 @@ def preprocess(text: str) -> str:
         >>> preprocess("Claim your $1000 prize")
         'Claim your __CURRENCY__ __NUM__ prize'
     """
-    text = _U_UMLAUT.sub("u", text)               # Ü/ü → u: Nokia keyboard artifact, closes spurious HAM signal
-    text = _AT_USER_HTML.sub("__USER__", text)   # @ <URL> → username, before general URL pass
-    text = _AT_USER_RAW.sub("__USER__", text)    # @handle not caught by HTML pass
-    text = _HTML_URL.sub("__URL__", text)
-    text = _HTML_NUM.sub("__NUM__", text)
-    text = _HTML_TIME.sub("__TIME__", text)
-    text = _HTML_EMAIL.sub("__EMAIL__", text)
-    text = _HTML_AMP.sub(" and ", text)
+    text = _U_UMLAUT.sub("u", text)              # Ü/ü → u: Nokia keyboard artifact, closes spurious HAM signal
+    text = _AT_USER_HTML.sub("", text)           # @ <URL>: NUS placeholder, original mention unknown — remove
+    text = _AT_USER_RAW.sub("__USER__", text)    # @handle: real user content — keep as token
+    text = _HTML_URL.sub("", text)               # NUS placeholder — remove
+    text = _HTML_NUM.sub("", text)               # NUS placeholder — remove
+    text = _HTML_TIME.sub("", text)              # NUS placeholder — remove
+    text = _HTML_EMAIL.sub("", text)             # NUS placeholder — remove
+    text = _HTML_AMP.sub(" and ", text)          # &amp; → and: restores real & character, not a placeholder
+    for unknown in _HTML_LEFTOVER.findall(text):
+        logger.warning("Unknown HTML-encoded token in preprocessing input: %r", unknown)
     text = _HTML_LEFTOVER.sub("", text)
     text = _REAL_URL.sub("__URL__", text)
     text = _CURRENCY.sub("__CURRENCY__ ", text)  # before STANDALONE_NR so £500 → __CURRENCY__ __NUM__
