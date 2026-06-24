@@ -335,6 +335,33 @@
 <dd></dd></dl>
 
 <dl class="py property">
+<dt class="sig sig-object py" id="sms_analysis.data.loader.SMSDataset.normalized_texts">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">normalized_texts</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#sms_analysis.data.loader.SMSDataset.normalized_texts" title="Link to this definition">¶</a></dt>
+<dd><p>Raw texts passed through the normalization pipeline on demand.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="sms_analysis.data.loader.SMSDataset.normalized_ham_texts">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">normalized_ham_texts</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#sms_analysis.data.loader.SMSDataset.normalized_ham_texts" title="Link to this definition">¶</a></dt>
+<dd><p>Normalized texts for HAM messages only.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="sms_analysis.data.loader.SMSDataset.normalized_spam_texts">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">normalized_spam_texts</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#sms_analysis.data.loader.SMSDataset.normalized_spam_texts" title="Link to this definition">¶</a></dt>
+<dd><p>Normalized texts for SPAM messages only.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="sms_analysis.data.loader.SMSDataset.deduplicated">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">deduplicated</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#sms_analysis.data.loader.SMSDataset" title="sms_analysis.data.loader.SMSDataset"><span class="pre">SMSDataset</span></a></span><a class="headerlink" href="#sms_analysis.data.loader.SMSDataset.deduplicated" title="Link to this definition">¶</a></dt>
+<dd><p>Return a new dataset with exact duplicate texts removed (first occurrence kept).</p>
+<p>The raw file contains 403 duplicate rows (309 HAM / 94 SPAM) with no
+conflicting labels. Deduplication prevents the same message from appearing
+in both train and test splits, which would inflate evaluation metrics.</p>
+</dd></dl>
+
+<dl class="py property">
 <dt class="sig sig-object py" id="sms_analysis.data.loader.SMSDataset.labels">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">labels</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#sms_analysis.data.loader.SMSDataset.labels" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -387,18 +414,42 @@
 </dd></dl>
 
 <p id="module-sms_analysis.data.preprocessing">Text preprocessing for the SMS Spam Collection dataset.</p>
-<p>Several messages contain HTML-encoded tokens such as <code class="docutils literal notranslate"><span class="pre">&amp;lt;URL&amp;gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code>.
-Their origin is unclear (researcher anonymisation or smartphone copy-paste
-artefacts) and would need to be verified against the original collection notes.
-Some messages also contain raw URLs (<code class="docutils literal notranslate"><span class="pre">http://…</span></code>).</p>
-<p>This module normalises all observed forms to consistent semantic tokens so that
-the model sees the same representation at training time and at inference time.
-Skipping this step at inference would cause train-serve skew.</p>
+<p>HTML-encoded tokens such as <code class="docutils literal notranslate"><span class="pre">&amp;lt;URL&amp;gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code> appear exclusively in HAM
+messages and originate from the NUS SMS Corpus (National University of Singapore).
+Before publishing their dataset, the NUS team replaced sensitive values —
+phone numbers, amounts, URLs, times, e-mail addresses — with typed HTML-encoded
+placeholders to protect the privacy of contributors.  SPAM messages (sourced
+from Grumbletext and other collections) were not anonymised in the same way and
+retain real phone numbers, prices, and links.</p>
+<p>Verified token inventory (all HAM-only):</p>
+<p>This module is the <strong>single source of truth</strong> for text normalisation.
+The raw dataset is never modified; normalisation is applied on demand via
+<a class="reference internal" href="#sms_analysis.data.loader.SMSDataset.normalized_texts" title="sms_analysis.data.loader.SMSDataset.normalized_texts"><code class="xref py py-meth docutils literal notranslate"><span class="pre">normalized_texts()</span></code></a>.
+The sklearn classification pipeline also uses <code class="docutils literal notranslate"><span class="pre">preprocess()</span></code> as its first
+step, guaranteeing train-serve consistency.</p>
 <section id="tokens-produced">
 <h3>Tokens produced<a class="headerlink" href="#tokens-produced" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">__USER__</span></code>  – <code class="docutils literal notranslate"><span class="pre">&#64;</span> <span class="pre">&amp;lt;URL&amp;gt;</span></code> or <code class="docutils literal notranslate"><span class="pre">&#64;handle</span></code> (username / social-media mention)
-<code class="docutils literal notranslate"><span class="pre">__URL__</span></code>   – URL placeholder or real URL
-<code class="docutils literal notranslate"><span class="pre">__NUM__</span></code>   – numeric placeholder or standalone number</p>
+<p><code class="docutils literal notranslate"><span class="pre">__USER__</span></code>      – <code class="docutils literal notranslate"><span class="pre">&#64;</span> <span class="pre">&amp;lt;URL&amp;gt;</span></code> or <code class="docutils literal notranslate"><span class="pre">&#64;handle</span></code> (username / social-media mention)
+<code class="docutils literal notranslate"><span class="pre">__URL__</span></code>       – URL placeholder or real URL
+<code class="docutils literal notranslate"><span class="pre">__NUM__</span></code>       – numeric / decimal / hash placeholder or standalone number
+<code class="docutils literal notranslate"><span class="pre">__TIME__</span></code>      – time placeholder from NUS anonymisation
+<code class="docutils literal notranslate"><span class="pre">__EMAIL__</span></code>     – e-mail address placeholder from NUS anonymisation
+<code class="docutils literal notranslate"><span class="pre">__CURRENCY__</span></code>  – any currency symbol (£, $, €, ¥, ₹, …), normalised to remove</p>
+<blockquote>
+<div><p>locale bias; amounts following the symbol are caught by <code class="docutils literal notranslate"><span class="pre">__NUM__</span></code></p>
+</div></blockquote>
+</section>
+<section id="character-normalisation">
+<h3>Character normalisation<a class="headerlink" href="#character-normalisation" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Ü</span></code> → <code class="docutils literal notranslate"><span class="pre">u</span></code>  The NUS SMS Corpus contains ~50 HAM messages where one or a few
+contributors used <code class="docutils literal notranslate"><span class="pre">Ü</span></code> as SMS shorthand for “you” — identical in meaning to the
+common <code class="docutils literal notranslate"><span class="pre">u</span></code>.  The likely cause is a Nokia phone with a European language pack
+where the <code class="docutils literal notranslate"><span class="pre">U</span></code> key cycled to <code class="docutils literal notranslate"><span class="pre">Ü</span></code> on repeat press.  In this dataset <code class="docutils literal notranslate"><span class="pre">Ü</span></code>
+appears 50× in HAM and 0× in SPAM.  Keeping it as a distinct token would create
+a spurious correlation: the model would learn <code class="docutils literal notranslate"><span class="pre">ü</span></code> → HAM, making it trivially
+exploitable — a single <code class="docutils literal notranslate"><span class="pre">Ü</span></code> appended to a SPAM message could flip the
+classification.  Normalising <code class="docutils literal notranslate"><span class="pre">Ü</span></code> → <code class="docutils literal notranslate"><span class="pre">u</span></code> is semantically correct and closes
+this adversarial attack surface.</p>
 </section>
 <dl class="py function">
 <dt class="sig sig-object py" id="sms_analysis.data.preprocessing.preprocess">
@@ -432,6 +483,12 @@ preventing train-serve skew.</p>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;Good &amp;amp; bad&quot;</span><span class="p">)</span>
 <span class="go">&#39;Good and bad&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;Win £500 cash now!&quot;</span><span class="p">)</span>
+<span class="go">&#39;Win __CURRENCY__ __NUM__ cash now!&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;Claim your $1000 prize&quot;</span><span class="p">)</span>
+<span class="go">&#39;Claim your __CURRENCY__ __NUM__ prize&#39;</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -673,8 +730,8 @@ Contains <code class="docutils literal notranslate"><span class="pre">top_n</spa
 <dt class="sig sig-object py" id="sms_analysis.analysis.ngrams.top_ngrams">
 <span class="sig-prename descclassname"><span class="pre">sms_analysis.analysis.ngrams.</span></span><span class="sig-name descname"><span class="pre">top_ngrams</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">texts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sms_analysis/analysis/ngrams.html#top_ngrams"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sms_analysis.analysis.ngrams.top_ngrams" title="Link to this definition">¶</a></dt>
 <dd><p>Extract the most frequent n-grams from a list of texts.</p>
-<p>Uses scikit-learn’s CountVectorizer so it benefits from the same
-English stopword list used elsewhere.</p>
+<p>Uses the same domain-specific stopword list as the word frequency analysis
+so that both analyses filter consistently.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1264,6 +1321,24 @@ SPAM-leaning words extend right (positive log-odds).</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="sms_analysis.visualization.plots.plot_word_frequencies_by_class">
+<span class="sig-prename descclassname"><span class="pre">sms_analysis.visualization.plots.</span></span><span class="sig-name descname"><span class="pre">plot_word_frequencies_by_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ham_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spam_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sms_analysis/visualization/plots.html#plot_word_frequencies_by_class"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sms_analysis.visualization.plots.plot_word_frequencies_by_class" title="Link to this definition">¶</a></dt>
+<dd><p>Side-by-side horizontal bar charts: HAM top words vs SPAM top words.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ham_df</strong> (<em>DataFrame</em>)</p></li>
+<li><p><strong>spam_df</strong> (<em>DataFrame</em>)</p></li>
+<li><p><strong>top_n</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="sms_analysis.visualization.plots.plot_ngrams">
 <span class="sig-prename descclassname"><span class="pre">sms_analysis.visualization.plots.</span></span><span class="sig-name descname"><span class="pre">plot_ngrams</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sms_analysis/visualization/plots.html#plot_ngrams"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sms_analysis.visualization.plots.plot_ngrams" title="Link to this definition">¶</a></dt>
 <dd><p>Horizontal bar chart of n-gram frequencies.</p>
@@ -1275,6 +1350,25 @@ SPAM-leaning words extend right (positive log-odds).</p>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>df</strong> (<em>DataFrame</em>)</p></li>
 <li><p><strong>n</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="sms_analysis.visualization.plots.plot_ngrams_by_class">
+<span class="sig-prename descclassname"><span class="pre">sms_analysis.visualization.plots.</span></span><span class="sig-name descname"><span class="pre">plot_ngrams_by_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ham_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spam_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sms_analysis/visualization/plots.html#plot_ngrams_by_class"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sms_analysis.visualization.plots.plot_ngrams_by_class" title="Link to this definition">¶</a></dt>
+<dd><p>Side-by-side horizontal bar charts: HAM n-grams vs SPAM n-grams.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ham_df</strong> (<em>DataFrame</em>)</p></li>
+<li><p><strong>spam_df</strong> (<em>DataFrame</em>)</p></li>
+<li><p><strong>n</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>top_k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -1472,6 +1566,10 @@ to <code class="docutils literal notranslate"><span class="pre">.env</span></cod
 <li><a class="reference internal" href="#sms_analysis.data.loader.SMSDataset.ham"><code class="docutils literal notranslate"><span class="pre">SMSDataset.ham</span></code></a></li>
 <li><a class="reference internal" href="#sms_analysis.data.loader.SMSDataset.spam"><code class="docutils literal notranslate"><span class="pre">SMSDataset.spam</span></code></a></li>
 <li><a class="reference internal" href="#sms_analysis.data.loader.SMSDataset.texts"><code class="docutils literal notranslate"><span class="pre">SMSDataset.texts</span></code></a></li>
+<li><a class="reference internal" href="#sms_analysis.data.loader.SMSDataset.normalized_texts"><code class="docutils literal notranslate"><span class="pre">SMSDataset.normalized_texts</span></code></a></li>
+<li><a class="reference internal" href="#sms_analysis.data.loader.SMSDataset.normalized_ham_texts"><code class="docutils literal notranslate"><span class="pre">SMSDataset.normalized_ham_texts</span></code></a></li>
+<li><a class="reference internal" href="#sms_analysis.data.loader.SMSDataset.normalized_spam_texts"><code class="docutils literal notranslate"><span class="pre">SMSDataset.normalized_spam_texts</span></code></a></li>
+<li><a class="reference internal" href="#sms_analysis.data.loader.SMSDataset.deduplicated"><code class="docutils literal notranslate"><span class="pre">SMSDataset.deduplicated</span></code></a></li>
 <li><a class="reference internal" href="#sms_analysis.data.loader.SMSDataset.labels"><code class="docutils literal notranslate"><span class="pre">SMSDataset.labels</span></code></a></li>
 <li><a class="reference internal" href="#sms_analysis.data.loader.SMSDataset.to_dataframe"><code class="docutils literal notranslate"><span class="pre">SMSDataset.to_dataframe()</span></code></a></li>
 <li><a class="reference internal" href="#sms_analysis.data.loader.SMSDataset.model_config"><code class="docutils literal notranslate"><span class="pre">SMSDataset.model_config</span></code></a></li>
@@ -1479,6 +1577,7 @@ to <code class="docutils literal notranslate"><span class="pre">.env</span></cod
 </li>
 <li><a class="reference internal" href="#sms_analysis.data.loader.load_dataset"><code class="docutils literal notranslate"><span class="pre">load_dataset()</span></code></a></li>
 <li><a class="reference internal" href="#tokens-produced">Tokens produced</a></li>
+<li><a class="reference internal" href="#character-normalisation">Character normalisation</a></li>
 <li><a class="reference internal" href="#sms_analysis.data.preprocessing.preprocess"><code class="docutils literal notranslate"><span class="pre">preprocess()</span></code></a></li>
 </ul>
 </li>
@@ -1581,7 +1680,9 @@ to <code class="docutils literal notranslate"><span class="pre">.env</span></cod
 <li><a class="reference internal" href="#module-sms_analysis.visualization.plots">Visualization</a><ul>
 <li><a class="reference internal" href="#sms_analysis.visualization.plots.plot_word_frequencies"><code class="docutils literal notranslate"><span class="pre">plot_word_frequencies()</span></code></a></li>
 <li><a class="reference internal" href="#sms_analysis.visualization.plots.plot_ham_spam_comparison"><code class="docutils literal notranslate"><span class="pre">plot_ham_spam_comparison()</span></code></a></li>
+<li><a class="reference internal" href="#sms_analysis.visualization.plots.plot_word_frequencies_by_class"><code class="docutils literal notranslate"><span class="pre">plot_word_frequencies_by_class()</span></code></a></li>
 <li><a class="reference internal" href="#sms_analysis.visualization.plots.plot_ngrams"><code class="docutils literal notranslate"><span class="pre">plot_ngrams()</span></code></a></li>
+<li><a class="reference internal" href="#sms_analysis.visualization.plots.plot_ngrams_by_class"><code class="docutils literal notranslate"><span class="pre">plot_ngrams_by_class()</span></code></a></li>
 <li><a class="reference internal" href="#sms_analysis.visualization.plots.plot_confusion_matrix"><code class="docutils literal notranslate"><span class="pre">plot_confusion_matrix()</span></code></a></li>
 <li><a class="reference internal" href="#sms_analysis.visualization.plots.plot_roc_curve"><code class="docutils literal notranslate"><span class="pre">plot_roc_curve()</span></code></a></li>
 <li><a class="reference internal" href="#sms_analysis.visualization.plots.plot_clusters_2d"><code class="docutils literal notranslate"><span class="pre">plot_clusters_2d()</span></code></a></li>

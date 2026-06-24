@@ -16,7 +16,7 @@ by Tiago A. Almeida and José María Gómez Hidalgo. Used here for this case stu
 ## Summary of the task
 
 The case study covers two focus areas applied to an English SMS dataset
-(5,572 messages: 86 % HAM / 14 % SPAM):
+(5,574 messages: 86 % HAM / 14 % SPAM):
 
 **Part 1 – Classic ML & Data Science (fully local, no external services)**
 
@@ -68,81 +68,206 @@ All variables use the `SMS_` prefix (see `.env.example`).
 
 ### Source and class distribution
 
-The dataset contains 5,572 SMS messages labelled by hand:
+The raw file contains 5,574 messages labelled by hand:
 
 | Class | Count | Share |
 |-------|------:|------:|
-| HAM   | 4,825 |  86 % |
+| HAM   | 4,827 |  86 % |
 | SPAM  |   747 |  14 % |
+
+**Duplicate rows:** 403 of the 5,574 rows are exact duplicates (309 HAM / 94 SPAM).
+5,171 unique message texts remain after deduplication.
+No duplicate pair carries conflicting labels.
+For evaluation, the classifier uses the deduplicated set to prevent the same
+text from appearing in both train and test splits.
 
 This imbalance is why accuracy is a meaningless metric here — a model that
 always predicts HAM scores 86 % without learning anything useful.
 
-### HTML-encoded tokens in the raw data
+The dataset is a composite of four sources (see `assignment/3D8026C4.zip/readme`):
 
-Several messages contain HTML-encoded entities such as `&lt;URL&gt;` or `&lt;#&gt;`.
-Their exact origin is unclear: they may be researcher-applied anonymisation
-placeholders, or they may be copy-paste artefacts from a smartphone browser —
-this would need to be verified against the original data collection notes.
-Regardless of origin, the observed tokens are:
+| Source | Type | Count |
+|--------|------|------:|
+| Grumbletext (UK forum, manually extracted) | SPAM | ~425 |
+| NUS SMS Corpus (National University of Singapore) | HAM | ~3,375 |
+| Caroline Tag's PhD thesis | HAM | ~450 |
+| SMS Spam Corpus v.0.1 Big | HAM + SPAM | ~1,324 |
 
-| Raw token | Observed meaning |
-|-----------|-----------------|
-| `&lt;#&gt;` | A number (phone, amount, date, …) |
-| `&lt;URL&gt;` | A hyperlink **or a username/handle** (e.g. `@ &lt;URL&gt;`) |
-| `&lt;DECIMAL&gt;` | A decimal number |
-| `&lt;NUMBER&gt;` | A numeric value |
-| `&amp;` | Ampersand |
-| Other `&lt;…&gt;` | Further tokens of unclear origin |
+This multi-source origin is important — the HAM and SPAM messages were collected
+and processed differently, which has direct consequences for preprocessing
+(see below).
 
-These are **not** real HTML — they are ASCII representations of `<#>`, `<URL>`,
-etc., stored in a plain-text file.
+### HTML-encoded tokens — investigation and findings
+
+The raw data contains HTML-encoded strings such as `&lt;URL&gt;` and `&lt;#&gt;`.
+Rather than assuming their origin, we verified it by counting how many
+messages contain each token type, broken down by class:
+
+| Token | Messages containing token | HAM | SPAM |
+|-------|-------------------------:|----:|-----:|
+| `&lt;#&gt;` | 214 | 214 | 0 |
+| `&lt;DECIMAL&gt;` | 21 | 21 | 0 |
+| `&lt;TIME&gt;` | 7 | 7 | 0 |
+| `&lt;URL&gt;` | 3 | 3 | 0 |
+| `&lt;EMAIL&gt;` | 1 | 1 | 0 |
+
+**Finding: every single token appears exclusively in HAM messages — zero in SPAM.**
+
+This rules out both hypotheses that were on the table:
+
+- **Not spam template variables** (unfilled placeholders from mass-SMS tools) —
+  those would appear in SPAM, not HAM.
+- **Not scraping artefacts from the Grumbletext forum** — Grumbletext is the
+  source of the SPAM messages; these tokens don't appear there at all.
+
+**What they actually are:** privacy-driven anonymisation applied by the NUS SMS
+Corpus team before publishing the HAM messages. Volunteers contributed real SMS
+messages; the NUS team replaced phone numbers, monetary amounts, decimal values,
+times, and e-mail addresses with typed placeholders so the messages could be
+shared publicly without exposing personal data.
+
+The SPAM messages (Grumbletext, manually copy-pasted) were not processed the
+same way — they retain real phone numbers, prices, and URLs.
+
+**Why this matters for the model:** these tokens are not spam indicators.
+A real number in a spam message and an anonymised number in a HAM message both
+map to `__NUM__` after normalisation. The ML signal is not the token itself
+but the *density and combination* of such tokens — spam messages are number-heavy
+(multiple phone numbers, shortcodes, prices, dates), while HAM messages
+containing `__NUM__` typically have just one or two occurrences.
 
 ### Real URLs also present
 
-A small number of messages contain actual URLs (`http://…`, `www.…`). In this
-dataset they appear exclusively in SPAM — a correlation that is a property of
-this sample, not a general truth. Ham messages regularly contain URLs in the
-real world (shared links, meeting invites, etc.).
+A small number of messages contain actual raw URLs (`http://…`, `www.…`).
+In this dataset they appear exclusively in SPAM — a correlation that is a
+property of this sample, not a general truth. HAM messages regularly contain
+links in real life (shared content, meeting invites, etc.).
 
-### How we normalise
+### Normalisation pipeline
 
-All of the above are collapsed to three semantic tokens before any vectorisation:
+**The raw dataset is never modified.** `SMSDataset.texts` always returns the
+original strings exactly as loaded from the file.
 
-| Input | Normalised to |
-|-------|--------------|
+Normalisation is applied on demand:
+
+```python
+dataset.normalized_texts        # all messages, normalised
+dataset.normalized_ham_texts    # HAM only, normalised
+dataset.normalized_spam_texts   # SPAM only, normalised
+```
+
+All three properties call `preprocess()` from
+`sms_analysis.data.preprocessing` — the single source of truth for
+normalisation. Changing the pipeline means changing one function; all
+consumers (analysis tasks, classification, n-gram extraction) pick up the
+change automatically without touching the raw data.
+
+The full normalisation mapping:
+
+| Input pattern | Normalised to |
+|--------------|--------------|
 | `@ &lt;URL&gt;`, `@handle` | `__USER__` |
 | `&lt;URL&gt;`, `http://…`, `www.…` | `__URL__` |
-| `&lt;#&gt;`, `&lt;DECIMAL&gt;`, `&lt;NUMBER&gt;`, standalone digits | `__NUM__` |
+| `&lt;#&gt;`, `&lt;DECIMAL&gt;`, `&lt;NUMBER&gt;`, standalone digits (≥2) | `__NUM__` |
+| `&lt;TIME&gt;` | `__TIME__` |
+| `&lt;EMAIL&gt;` | `__EMAIL__` |
+| `£`, `$`, `€`, `¥`, `₹`, `₽`, `₩`, `₿` | `__CURRENCY__` |
 | `&amp;` | `and` |
 | Other `&lt;…&gt;` | removed |
 
 **Why tokens instead of deletion?** The *presence* of a URL, username mention,
-or number is a strong statistical signal — spam messages contain them at a much
-higher rate in this dataset. Deleting them discards that signal. Replacing them
-with a consistent token lets TF-IDF and the embedding model learn the pattern.
+or number is a strong statistical signal — spam messages are token-dense in a
+way that HAM messages are not. Deleting them discards that signal. Replacing
+them with a consistent placeholder lets TF-IDF and the embedding model learn
+the pattern while keeping the vocabulary clean.
 
 **What ML does and does not decide here:**
-The model learns that *spam messages tend to contain URLs or phone numbers more
-often* — it does not evaluate whether a specific URL or number is malicious.
+The model learns that *spam messages tend to be dense with URLs and phone numbers* —
+it does not evaluate whether a specific URL or number is malicious.
 That distinction matters in production:
 
 - A URL is not inherently spam or ham. A domain that is clean today can be
-  compromised tomorrow, and a spammer can register a fresh domain that appears
+  compromised tomorrow; a spammer can register a fresh domain that appears
   on no blacklist yet.
-- A phone number is not inherently spam or ham either. Numbers get recycled,
+- A phone number is not inherently spam or ham. Numbers get recycled,
   spoofed, or legitimately used by businesses.
 
-For high-quality spam filtering, URL and phone-number reputation checks belong
-in a dedicated layer — URL blacklists / threat-intel feeds (IoC matching) and
-carrier/number reputation services — not in the ML text classifier. The ML
-signal ("a URL is present") and the reputation check ("this specific URL is
-known-bad") complement each other and should not be conflated.
+URL and phone-number reputation belong in dedicated layers — URL blacklists,
+threat-intel feeds (IoC matching), carrier reputation services — complementing
+the ML classifier rather than being conflated with it.
 
-**Train-serve consistency:** the normalisation step is the first stage of the
-serialised `sklearn.Pipeline`. When the trained model is loaded for inference,
-the same preprocessing runs automatically — there is no risk of divergence
-between training and prediction.
+**Train-serve consistency:** the same `preprocess()` function is also the
+first step of the serialised `sklearn.Pipeline` used by the classifier.
+When the trained model is loaded for inference, preprocessing runs automatically —
+there is no risk of divergence between training and prediction.
+
+### Dataset limitations and what they mean for the model
+
+This dataset is useful for demonstrating the approach but carries biases that
+directly affect what the trained model can and cannot do.
+
+**Geographic and linguistic bias**
+
+The corpus is a mix of UK and Singaporean English. The HAM messages from the
+NUS corpus reflect the vocabulary and writing style of Singaporean university
+students (e.g. "lor", "lah", "da" as discourse particles). The SPAM messages
+were collected from a UK forum and reflect UK premium-rate SMS fraud patterns
+("prize", "claim", "await collection", "150p per msg", "BT national rate").
+
+A model trained on this data is a reasonable UK/Singapore spam detector.
+Applied to Austrian, German, or Brazilian traffic, it would encounter different
+vocabulary, different fraud patterns, different SMS conventions — and its
+performance would degrade accordingly. The training data does not cover these
+cases, so the model cannot be expected to generalise to them.
+
+**Currency symbols as a concrete example**
+
+In this dataset, `£` (British pound) appears almost exclusively in SPAM.
+Without normalisation, the model would learn "£ = spam signal" — which is true
+for UK data but useless (or misleading) for traffic where `€`, `$`, or `₹`
+are the local currency. The preprocessing step normalises all currency symbols
+to `__CURRENCY__`, so the model learns "a currency symbol before an amount =
+spam signal" rather than anything tied to a specific currency. This is a
+deliberate decision to improve generalisability within the limits of the
+available data.
+
+**Spurious correlations and adversarial robustness — a concrete example**
+
+The NUS corpus contains ~50 HAM messages where one or a few contributors used
+`Ü` as SMS shorthand for "you" (identical in meaning to the common `u`). The
+likely cause: a Nokia phone with a European language pack where the `U` key
+cycled to `Ü` on repeated press. In this dataset `Ü` appears 50 times in HAM
+and exactly zero times in SPAM.
+
+Left unnormalised, the model would learn `ü` → HAM with very high confidence —
+a spurious correlation driven entirely by the typing habits of one person's
+phone hardware, not by anything meaningful about the content. This creates a
+trivially exploitable weakness: a spammer who appended a single `Ü` to their
+message could shift the classifier toward a HAM prediction.
+
+The fix is to normalise `Ü` → `u` in preprocessing. Semantically correct
+(both mean "you"), eliminates the attack surface, and removes a feature that
+would not generalise to any data collected on different devices.
+
+This is a concrete example of why understanding training data matters beyond
+accuracy numbers. A 99% AUC model can carry silent exploitable weaknesses that
+only surface when someone looks closely at what the features actually represent.
+
+**What diverse, multi-locale training data would change**
+
+Different regions have different spam vocabularies, different common scam types,
+different norms for legitimate business SMS. A production-grade multilingual
+spam filter would need:
+
+- Multiple corpora covering different languages and regions
+- Balanced representation of local HAM patterns (not just Singlish)
+- Ongoing labelling as spam patterns evolve
+
+Without this, any model is essentially an in-distribution classifier: it works
+well on data that resembles its training set, and its quality guarantees end
+where that resemblance ends. This is not a flaw in the approach — it is an
+inherent property of supervised ML that needs to be stated explicitly when
+setting expectations.
 
 ---
 
@@ -171,7 +296,9 @@ between training and prediction.
 **Evaluation — F1-SPAM and ROC-AUC (not accuracy)**
 The dataset is imbalanced (86 / 14). A model that always predicts HAM scores 86 % accuracy
 without learning anything. F1-SPAM and ROC-AUC are the meaningful primary metrics.
-Stratified k-fold cross-validation preserves the class ratio in every fold.
+The CLI evaluation uses a single stratified 80/20 train/test split on the deduplicated
+dataset. The codebase also includes `StratifiedKFold` utilities for cross-validation
+where a more robust estimate across multiple folds is needed.
 
 ### GenAI / Embeddings (Part 2)
 
@@ -211,7 +338,7 @@ pip install -e .
 
 ### Part 1 — Classic ML (fully local, no setup beyond pip install)
 
-**Run all analyses at once:**
+**Run all analyses at once (Part 1 only — Tasks 1–4):**
 ```bash
 sms-analyze all
 ```
@@ -225,7 +352,8 @@ sms-analyze classification   # Task 4 – train, evaluate, save model
 sms-analyze classification --model naive_bayes   # baseline comparison
 ```
 
-Generated plots and models are saved to `outputs/`.
+Generated plots and models are saved to `outputs/` (gitignored — transient).
+A committed snapshot of a clean run is in `solution/`.
 
 **Or open the Jupyter notebooks:**
 ```bash

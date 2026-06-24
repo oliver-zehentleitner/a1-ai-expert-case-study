@@ -248,7 +248,7 @@ by Tiago A. Almeida and José María Gómez Hidalgo. Used here for this case stu
 <section id="summary-of-the-task">
 <h2>Summary of the task<a class="headerlink" href="#summary-of-the-task" title="Link to this heading">¶</a></h2>
 <p>The case study covers two focus areas applied to an English SMS dataset
-(5,572 messages: 86 % HAM / 14 % SPAM):</p>
+(5,574 messages: 86 % HAM / 14 % SPAM):</p>
 <p><strong>Part 1 – Classic ML &amp; Data Science (fully local, no external services)</strong></p>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
@@ -319,7 +319,7 @@ All variables use the <code class="docutils literal notranslate"><span class="pr
 <h2>Dataset &amp; preprocessing<a class="headerlink" href="#dataset-preprocessing" title="Link to this heading">¶</a></h2>
 <section id="source-and-class-distribution">
 <h3>Source and class distribution<a class="headerlink" href="#source-and-class-distribution" title="Link to this heading">¶</a></h3>
-<p>The dataset contains 5,572 SMS messages labelled by hand:</p>
+<p>The raw file contains 5,574 messages labelled by hand:</p>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -330,7 +330,7 @@ All variables use the <code class="docutils literal notranslate"><span class="pr
 </thead>
 <tbody>
 <tr class="row-even"><td><p>HAM</p></td>
-<td class="text-right"><p>4,825</p></td>
+<td class="text-right"><p>4,827</p></td>
 <td class="text-right"><p>86 %</p></td>
 </tr>
 <tr class="row-odd"><td><p>SPAM</p></td>
@@ -340,62 +340,138 @@ All variables use the <code class="docutils literal notranslate"><span class="pr
 </tbody>
 </table>
 </div>
+<p><strong>Duplicate rows:</strong> 403 of the 5,574 rows are exact duplicates (309 HAM / 94 SPAM).
+5,171 unique message texts remain after deduplication.
+No duplicate pair carries conflicting labels.
+For evaluation, the classifier uses the deduplicated set to prevent the same
+text from appearing in both train and test splits.</p>
 <p>This imbalance is why accuracy is a meaningless metric here — a model that
 always predicts HAM scores 86 % without learning anything useful.</p>
-</section>
-<section id="html-encoded-tokens-in-the-raw-data">
-<h3>HTML-encoded tokens in the raw data<a class="headerlink" href="#html-encoded-tokens-in-the-raw-data" title="Link to this heading">¶</a></h3>
-<p>Several messages contain HTML-encoded entities such as <code class="docutils literal notranslate"><span class="pre">&amp;lt;URL&amp;gt;</span></code> or <code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code>.
-Their exact origin is unclear: they may be researcher-applied anonymisation
-placeholders, or they may be copy-paste artefacts from a smartphone browser —
-this would need to be verified against the original data collection notes.
-Regardless of origin, the observed tokens are:</p>
+<p>The dataset is a composite of four sources (see <code class="docutils literal notranslate"><span class="pre">assignment/3D8026C4.zip/readme</span></code>):</p>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p>Raw token</p></th>
-<th class="head"><p>Observed meaning</p></th>
+<tr class="row-odd"><th class="head"><p>Source</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head text-right"><p>Count</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code></p></td>
-<td><p>A number (phone, amount, date, …)</p></td>
+<tr class="row-even"><td><p>Grumbletext (UK forum, manually extracted)</p></td>
+<td><p>SPAM</p></td>
+<td class="text-right"><p>~425</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;URL&amp;gt;</span></code></p></td>
-<td><p>A hyperlink <strong>or a username/handle</strong> (e.g. <code class="docutils literal notranslate"><span class="pre">&#64;</span> <span class="pre">&amp;lt;URL&amp;gt;</span></code>)</p></td>
+<tr class="row-odd"><td><p>NUS SMS Corpus (National University of Singapore)</p></td>
+<td><p>HAM</p></td>
+<td class="text-right"><p>~3,375</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;DECIMAL&amp;gt;</span></code></p></td>
-<td><p>A decimal number</p></td>
+<tr class="row-even"><td><p>Caroline Tag’s PhD thesis</p></td>
+<td><p>HAM</p></td>
+<td class="text-right"><p>~450</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;NUMBER&amp;gt;</span></code></p></td>
-<td><p>A numeric value</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;amp;</span></code></p></td>
-<td><p>Ampersand</p></td>
-</tr>
-<tr class="row-odd"><td><p>Other <code class="docutils literal notranslate"><span class="pre">&amp;lt;…&amp;gt;</span></code></p></td>
-<td><p>Further tokens of unclear origin</p></td>
+<tr class="row-odd"><td><p>SMS Spam Corpus v.0.1 Big</p></td>
+<td><p>HAM + SPAM</p></td>
+<td class="text-right"><p>~1,324</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>These are <strong>not</strong> real HTML — they are ASCII representations of <code class="docutils literal notranslate"><span class="pre">&lt;#&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;URL&gt;</span></code>,
-etc., stored in a plain-text file.</p>
+<p>This multi-source origin is important — the HAM and SPAM messages were collected
+and processed differently, which has direct consequences for preprocessing
+(see below).</p>
 </section>
-<section id="real-urls-also-present">
-<h3>Real URLs also present<a class="headerlink" href="#real-urls-also-present" title="Link to this heading">¶</a></h3>
-<p>A small number of messages contain actual URLs (<code class="docutils literal notranslate"><span class="pre">http://…</span></code>, <code class="docutils literal notranslate"><span class="pre">www.…</span></code>). In this
-dataset they appear exclusively in SPAM — a correlation that is a property of
-this sample, not a general truth. Ham messages regularly contain URLs in the
-real world (shared links, meeting invites, etc.).</p>
-</section>
-<section id="how-we-normalise">
-<h3>How we normalise<a class="headerlink" href="#how-we-normalise" title="Link to this heading">¶</a></h3>
-<p>All of the above are collapsed to three semantic tokens before any vectorisation:</p>
+<section id="html-encoded-tokens-investigation-and-findings">
+<h3>HTML-encoded tokens — investigation and findings<a class="headerlink" href="#html-encoded-tokens-investigation-and-findings" title="Link to this heading">¶</a></h3>
+<p>The raw data contains HTML-encoded strings such as <code class="docutils literal notranslate"><span class="pre">&amp;lt;URL&amp;gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code>.
+Rather than assuming their origin, we verified it by counting how many
+messages contain each token type, broken down by class:</p>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p>Input</p></th>
+<tr class="row-odd"><th class="head"><p>Token</p></th>
+<th class="head text-right"><p>Messages containing token</p></th>
+<th class="head text-right"><p>HAM</p></th>
+<th class="head text-right"><p>SPAM</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code></p></td>
+<td class="text-right"><p>214</p></td>
+<td class="text-right"><p>214</p></td>
+<td class="text-right"><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;DECIMAL&amp;gt;</span></code></p></td>
+<td class="text-right"><p>21</p></td>
+<td class="text-right"><p>21</p></td>
+<td class="text-right"><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;TIME&amp;gt;</span></code></p></td>
+<td class="text-right"><p>7</p></td>
+<td class="text-right"><p>7</p></td>
+<td class="text-right"><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;URL&amp;gt;</span></code></p></td>
+<td class="text-right"><p>3</p></td>
+<td class="text-right"><p>3</p></td>
+<td class="text-right"><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;EMAIL&amp;gt;</span></code></p></td>
+<td class="text-right"><p>1</p></td>
+<td class="text-right"><p>1</p></td>
+<td class="text-right"><p>0</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Finding: every single token appears exclusively in HAM messages — zero in SPAM.</strong></p>
+<p>This rules out both hypotheses that were on the table:</p>
+<ul class="simple">
+<li><p><strong>Not spam template variables</strong> (unfilled placeholders from mass-SMS tools) —
+those would appear in SPAM, not HAM.</p></li>
+<li><p><strong>Not scraping artefacts from the Grumbletext forum</strong> — Grumbletext is the
+source of the SPAM messages; these tokens don’t appear there at all.</p></li>
+</ul>
+<p><strong>What they actually are:</strong> privacy-driven anonymisation applied by the NUS SMS
+Corpus team before publishing the HAM messages. Volunteers contributed real SMS
+messages; the NUS team replaced phone numbers, monetary amounts, decimal values,
+times, and e-mail addresses with typed placeholders so the messages could be
+shared publicly without exposing personal data.</p>
+<p>The SPAM messages (Grumbletext, manually copy-pasted) were not processed the
+same way — they retain real phone numbers, prices, and URLs.</p>
+<p><strong>Why this matters for the model:</strong> these tokens are not spam indicators.
+A real number in a spam message and an anonymised number in a HAM message both
+map to <code class="docutils literal notranslate"><span class="pre">__NUM__</span></code> after normalisation. The ML signal is not the token itself
+but the <em>density and combination</em> of such tokens — spam messages are number-heavy
+(multiple phone numbers, shortcodes, prices, dates), while HAM messages
+containing <code class="docutils literal notranslate"><span class="pre">__NUM__</span></code> typically have just one or two occurrences.</p>
+</section>
+<section id="real-urls-also-present">
+<h3>Real URLs also present<a class="headerlink" href="#real-urls-also-present" title="Link to this heading">¶</a></h3>
+<p>A small number of messages contain actual raw URLs (<code class="docutils literal notranslate"><span class="pre">http://…</span></code>, <code class="docutils literal notranslate"><span class="pre">www.…</span></code>).
+In this dataset they appear exclusively in SPAM — a correlation that is a
+property of this sample, not a general truth. HAM messages regularly contain
+links in real life (shared content, meeting invites, etc.).</p>
+</section>
+<section id="normalisation-pipeline">
+<h3>Normalisation pipeline<a class="headerlink" href="#normalisation-pipeline" title="Link to this heading">¶</a></h3>
+<p><strong>The raw dataset is never modified.</strong> <code class="docutils literal notranslate"><span class="pre">SMSDataset.texts</span></code> always returns the
+original strings exactly as loaded from the file.</p>
+<p>Normalisation is applied on demand:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dataset</span><span class="o">.</span><span class="n">normalized_texts</span>        <span class="c1"># all messages, normalised</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">normalized_ham_texts</span>    <span class="c1"># HAM only, normalised</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">normalized_spam_texts</span>   <span class="c1"># SPAM only, normalised</span>
+</pre></div>
+</div>
+<p>All three properties call <code class="docutils literal notranslate"><span class="pre">preprocess()</span></code> from
+<code class="docutils literal notranslate"><span class="pre">sms_analysis.data.preprocessing</span></code> — the single source of truth for
+normalisation. Changing the pipeline means changing one function; all
+consumers (analysis tasks, classification, n-gram extraction) pick up the
+change automatically without touching the raw data.</p>
+<p>The full normalisation mapping:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Input pattern</p></th>
 <th class="head"><p>Normalised to</p></th>
 </tr>
 </thead>
@@ -406,42 +482,106 @@ real world (shared links, meeting invites, etc.).</p>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;URL&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">http://…</span></code>, <code class="docutils literal notranslate"><span class="pre">www.…</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">__URL__</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;DECIMAL&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;NUMBER&amp;gt;</span></code>, standalone digits</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;DECIMAL&amp;gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;lt;NUMBER&amp;gt;</span></code>, standalone digits (≥2)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">__NUM__</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;amp;</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;TIME&amp;gt;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">__TIME__</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;lt;EMAIL&amp;gt;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">__EMAIL__</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">£</span></code>, <code class="docutils literal notranslate"><span class="pre">$</span></code>, <code class="docutils literal notranslate"><span class="pre">€</span></code>, <code class="docutils literal notranslate"><span class="pre">¥</span></code>, <code class="docutils literal notranslate"><span class="pre">₹</span></code>, <code class="docutils literal notranslate"><span class="pre">₽</span></code>, <code class="docutils literal notranslate"><span class="pre">₩</span></code>, <code class="docutils literal notranslate"><span class="pre">₿</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">__CURRENCY__</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;amp;</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">and</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>Other <code class="docutils literal notranslate"><span class="pre">&amp;lt;…&amp;gt;</span></code></p></td>
+<tr class="row-odd"><td><p>Other <code class="docutils literal notranslate"><span class="pre">&amp;lt;…&amp;gt;</span></code></p></td>
 <td><p>removed</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 <p><strong>Why tokens instead of deletion?</strong> The <em>presence</em> of a URL, username mention,
-or number is a strong statistical signal — spam messages contain them at a much
-higher rate in this dataset. Deleting them discards that signal. Replacing them
-with a consistent token lets TF-IDF and the embedding model learn the pattern.</p>
+or number is a strong statistical signal — spam messages are token-dense in a
+way that HAM messages are not. Deleting them discards that signal. Replacing
+them with a consistent placeholder lets TF-IDF and the embedding model learn
+the pattern while keeping the vocabulary clean.</p>
 <p><strong>What ML does and does not decide here:</strong>
-The model learns that <em>spam messages tend to contain URLs or phone numbers more
-often</em> — it does not evaluate whether a specific URL or number is malicious.
+The model learns that <em>spam messages tend to be dense with URLs and phone numbers</em> —
+it does not evaluate whether a specific URL or number is malicious.
 That distinction matters in production:</p>
 <ul class="simple">
 <li><p>A URL is not inherently spam or ham. A domain that is clean today can be
-compromised tomorrow, and a spammer can register a fresh domain that appears
+compromised tomorrow; a spammer can register a fresh domain that appears
 on no blacklist yet.</p></li>
-<li><p>A phone number is not inherently spam or ham either. Numbers get recycled,
+<li><p>A phone number is not inherently spam or ham. Numbers get recycled,
 spoofed, or legitimately used by businesses.</p></li>
 </ul>
-<p>For high-quality spam filtering, URL and phone-number reputation checks belong
-in a dedicated layer — URL blacklists / threat-intel feeds (IoC matching) and
-carrier/number reputation services — not in the ML text classifier. The ML
-signal (“a URL is present”) and the reputation check (“this specific URL is
-known-bad”) complement each other and should not be conflated.</p>
-<p><strong>Train-serve consistency:</strong> the normalisation step is the first stage of the
-serialised <code class="docutils literal notranslate"><span class="pre">sklearn.Pipeline</span></code>. When the trained model is loaded for inference,
-the same preprocessing runs automatically — there is no risk of divergence
-between training and prediction.</p>
+<p>URL and phone-number reputation belong in dedicated layers — URL blacklists,
+threat-intel feeds (IoC matching), carrier reputation services — complementing
+the ML classifier rather than being conflated with it.</p>
+<p><strong>Train-serve consistency:</strong> the same <code class="docutils literal notranslate"><span class="pre">preprocess()</span></code> function is also the
+first step of the serialised <code class="docutils literal notranslate"><span class="pre">sklearn.Pipeline</span></code> used by the classifier.
+When the trained model is loaded for inference, preprocessing runs automatically —
+there is no risk of divergence between training and prediction.</p>
+</section>
+<section id="dataset-limitations-and-what-they-mean-for-the-model">
+<h3>Dataset limitations and what they mean for the model<a class="headerlink" href="#dataset-limitations-and-what-they-mean-for-the-model" title="Link to this heading">¶</a></h3>
+<p>This dataset is useful for demonstrating the approach but carries biases that
+directly affect what the trained model can and cannot do.</p>
+<p><strong>Geographic and linguistic bias</strong></p>
+<p>The corpus is a mix of UK and Singaporean English. The HAM messages from the
+NUS corpus reflect the vocabulary and writing style of Singaporean university
+students (e.g. “lor”, “lah”, “da” as discourse particles). The SPAM messages
+were collected from a UK forum and reflect UK premium-rate SMS fraud patterns
+(“prize”, “claim”, “await collection”, “150p per msg”, “BT national rate”).</p>
+<p>A model trained on this data is a reasonable UK/Singapore spam detector.
+Applied to Austrian, German, or Brazilian traffic, it would encounter different
+vocabulary, different fraud patterns, different SMS conventions — and its
+performance would degrade accordingly. The training data does not cover these
+cases, so the model cannot be expected to generalise to them.</p>
+<p><strong>Currency symbols as a concrete example</strong></p>
+<p>In this dataset, <code class="docutils literal notranslate"><span class="pre">£</span></code> (British pound) appears almost exclusively in SPAM.
+Without normalisation, the model would learn “£ = spam signal” — which is true
+for UK data but useless (or misleading) for traffic where <code class="docutils literal notranslate"><span class="pre">€</span></code>, <code class="docutils literal notranslate"><span class="pre">$</span></code>, or <code class="docutils literal notranslate"><span class="pre">₹</span></code>
+are the local currency. The preprocessing step normalises all currency symbols
+to <code class="docutils literal notranslate"><span class="pre">__CURRENCY__</span></code>, so the model learns “a currency symbol before an amount =
+spam signal” rather than anything tied to a specific currency. This is a
+deliberate decision to improve generalisability within the limits of the
+available data.</p>
+<p><strong>Spurious correlations and adversarial robustness — a concrete example</strong></p>
+<p>The NUS corpus contains ~50 HAM messages where one or a few contributors used
+<code class="docutils literal notranslate"><span class="pre">Ü</span></code> as SMS shorthand for “you” (identical in meaning to the common <code class="docutils literal notranslate"><span class="pre">u</span></code>). The
+likely cause: a Nokia phone with a European language pack where the <code class="docutils literal notranslate"><span class="pre">U</span></code> key
+cycled to <code class="docutils literal notranslate"><span class="pre">Ü</span></code> on repeated press. In this dataset <code class="docutils literal notranslate"><span class="pre">Ü</span></code> appears 50 times in HAM
+and exactly zero times in SPAM.</p>
+<p>Left unnormalised, the model would learn <code class="docutils literal notranslate"><span class="pre">ü</span></code> → HAM with very high confidence —
+a spurious correlation driven entirely by the typing habits of one person’s
+phone hardware, not by anything meaningful about the content. This creates a
+trivially exploitable weakness: a spammer who appended a single <code class="docutils literal notranslate"><span class="pre">Ü</span></code> to their
+message could shift the classifier toward a HAM prediction.</p>
+<p>The fix is to normalise <code class="docutils literal notranslate"><span class="pre">Ü</span></code> → <code class="docutils literal notranslate"><span class="pre">u</span></code> in preprocessing. Semantically correct
+(both mean “you”), eliminates the attack surface, and removes a feature that
+would not generalise to any data collected on different devices.</p>
+<p>This is a concrete example of why understanding training data matters beyond
+accuracy numbers. A 99% AUC model can carry silent exploitable weaknesses that
+only surface when someone looks closely at what the features actually represent.</p>
+<p><strong>What diverse, multi-locale training data would change</strong></p>
+<p>Different regions have different spam vocabularies, different common scam types,
+different norms for legitimate business SMS. A production-grade multilingual
+spam filter would need:</p>
+<ul class="simple">
+<li><p>Multiple corpora covering different languages and regions</p></li>
+<li><p>Balanced representation of local HAM patterns (not just Singlish)</p></li>
+<li><p>Ongoing labelling as spam patterns evolve</p></li>
+</ul>
+<p>Without this, any model is essentially an in-distribution classifier: it works
+well on data that resembles its training set, and its quality guarantees end
+where that resemblance ends. This is not a flaw in the approach — it is an
+inherent property of supervised ML that needs to be stated explicitly when
+setting expectations.</p>
 </section>
 </section>
 <hr class="docutils" />
@@ -472,7 +612,9 @@ would be overkill for 5,500 samples and a 99 %+ achievable AUC with linear model
 <p><strong>Evaluation — F1-SPAM and ROC-AUC (not accuracy)</strong>
 The dataset is imbalanced (86 / 14). A model that always predicts HAM scores 86 % accuracy
 without learning anything. F1-SPAM and ROC-AUC are the meaningful primary metrics.
-Stratified k-fold cross-validation preserves the class ratio in every fold.</p>
+The CLI evaluation uses a single stratified 80/20 train/test split on the deduplicated
+dataset. The codebase also includes <code class="docutils literal notranslate"><span class="pre">StratifiedKFold</span></code> utilities for cross-validation
+where a more robust estimate across multiple folds is needed.</p>
 </section>
 <section id="genai-embeddings-part-2">
 <h3>GenAI / Embeddings (Part 2)<a class="headerlink" href="#genai-embeddings-part-2" title="Link to this heading">¶</a></h3>
@@ -514,7 +656,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </section>
 <section id="part-1-classic-ml-fully-local-no-setup-beyond-pip-install">
 <h3>Part 1 — Classic ML (fully local, no setup beyond pip install)<a class="headerlink" href="#part-1-classic-ml-fully-local-no-setup-beyond-pip-install" title="Link to this heading">¶</a></h3>
-<p><strong>Run all analyses at once:</strong></p>
+<p><strong>Run all analyses at once (Part 1 only — Tasks 1–4):</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sms-analyze<span class="w"> </span>all
 </pre></div>
 </div>
@@ -526,7 +668,8 @@ sms-analyze<span class="w"> </span>classification<span class="w">   </span><span
 sms-analyze<span class="w"> </span>classification<span class="w"> </span>--model<span class="w"> </span>naive_bayes<span class="w">   </span><span class="c1"># baseline comparison</span>
 </pre></div>
 </div>
-<p>Generated plots and models are saved to <code class="docutils literal notranslate"><span class="pre">outputs/</span></code>.</p>
+<p>Generated plots and models are saved to <code class="docutils literal notranslate"><span class="pre">outputs/</span></code> (gitignored — transient).
+A committed snapshot of a clean run is in <code class="docutils literal notranslate"><span class="pre">solution/</span></code>.</p>
 <p><strong>Or open the Jupyter notebooks:</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>jupyter<span class="w"> </span>notebook<span class="w"> </span>notebooks/
 </pre></div>
@@ -626,9 +769,10 @@ bash<span class="w"> </span>dev/sphinx/scripts/build_docs.sh
 <li><a class="reference internal" href="#how-is-the-implementation-envisaged">How is the implementation envisaged?</a></li>
 <li><a class="reference internal" href="#dataset-preprocessing">Dataset &amp; preprocessing</a><ul>
 <li><a class="reference internal" href="#source-and-class-distribution">Source and class distribution</a></li>
-<li><a class="reference internal" href="#html-encoded-tokens-in-the-raw-data">HTML-encoded tokens in the raw data</a></li>
+<li><a class="reference internal" href="#html-encoded-tokens-investigation-and-findings">HTML-encoded tokens — investigation and findings</a></li>
 <li><a class="reference internal" href="#real-urls-also-present">Real URLs also present</a></li>
-<li><a class="reference internal" href="#how-we-normalise">How we normalise</a></li>
+<li><a class="reference internal" href="#normalisation-pipeline">Normalisation pipeline</a></li>
+<li><a class="reference internal" href="#dataset-limitations-and-what-they-mean-for-the-model">Dataset limitations and what they mean for the model</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#advantages-and-disadvantages-of-this-implementation-and-why-it-was-chosen">Advantages and disadvantages of this implementation, and why it was chosen</a><ul>

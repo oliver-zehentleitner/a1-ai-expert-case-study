@@ -37,7 +37,10 @@ All domain objects are Pydantic ``BaseModel`` subclasses:
 
 - ``SMSMessage(label: Label, text: str)`` — single SMS, ``is_spam`` property
 - ``SMSDataset(messages: list[SMSMessage])`` — with ``.ham``, ``.spam``,
-  ``.texts``, ``.labels``, ``.to_dataframe()``
+  ``.texts``, ``.labels``, ``.to_dataframe()``,
+  ``.normalized_texts`` / ``.normalized_ham_texts`` / ``.normalized_spam_texts``
+  (on-demand normalisation), and ``.deduplicated`` (removes 403 exact duplicate
+  rows; use before train/test splits to prevent data leakage)
 - ``ClusteringResult`` — embeddings, 2-D UMAP projection, labels, inertias
 
 Strategy pattern — embedding providers
@@ -70,7 +73,7 @@ The SPAM/HAM classifier is an ``sklearn.pipeline.Pipeline``:
      ↓
    TfidfVectorizer(sublinear_tf=True, ngram_range=(1,2), max_features=10000)
      ↓
-   LogisticRegression / ComplementNB
+   LogisticRegression(solver="liblinear") / MultinomialNB
 
 The preprocessing step (HTML entity normalisation, URL replacement) is part of
 the serialised pipeline. When the model is loaded and used for inference the
@@ -100,5 +103,7 @@ Primary metrics:
 - **F1-SPAM** — harmonic mean of SPAM precision and recall
 - **ROC-AUC** — area under the receiver operating characteristic curve
 
-Stratified ``train_test_split`` (80/20) and ``StratifiedKFold`` cross-validation
-preserve the class ratio in every split.
+Single stratified 80/20 ``train_test_split`` on the deduplicated dataset
+(5,171 unique messages; 403 duplicates removed to prevent train/test leakage).
+``StratifiedKFold`` utilities are available in the codebase for multi-fold
+cross-validation where a more robust estimate is needed.
