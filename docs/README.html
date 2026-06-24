@@ -241,9 +241,11 @@
 <p><strong><a class="reference internal" href="#docs/index.html"><span class="xref myst">Full documentation</span></a></strong> — CLI reference, API autodoc, architecture overview.</p>
 <p>The SMS dataset is located at
 <a class="reference download internal" download="" href="_downloads/fb17ebe0a3fa398f276cd3ee4fd41621/SMSSpamCollection"><span class="xref download myst"><code class="docutils literal notranslate"><span class="pre">./assignment/3D8026C4.zip/SMSSpamCollection</span></code></span></a>,
-based on the publicly available
-<a class="reference external" href="http://www.dt.fee.unicamp.br/~tiago/smsspamcollection/">SMS Spam Collection v.1</a>
-by Tiago A. Almeida and José María Gómez Hidalgo. Used here for this case study only.</p>
+based on the <em>SMS Spam Collection v.1</em> by Tiago A. Almeida and José María Gómez Hidalgo
+(<code class="docutils literal notranslate"><span class="pre">http://www.dt.fee.unicamp.br/~tiago/smsspamcollection/</span></code> — canonical citation URL,
+no longer reachable; it was a personal academic page at UNICAMP that disappeared when
+the author left the institution — the dataset itself is included in the assignment ZIP).
+Used here for this case study only.</p>
 <hr class="docutils" />
 <section id="summary-of-the-task">
 <h2>Summary of the task<a class="headerlink" href="#summary-of-the-task" title="Link to this heading">¶</a></h2>
@@ -721,13 +723,15 @@ Use <code class="docutils literal notranslate"><span class="pre">--yes</span></c
 </pre></div>
 </div>
 <p>To rebuild the docs from source (e.g. after code changes):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[docs]&quot;</span><span class="w">   </span><span class="c1"># first time only (Linux / macOS / Windows)</span>
+</pre></div>
+</div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Linux / macOS</span>
-pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[docs]&quot;</span><span class="w">                    </span><span class="c1"># first time only</span>
 bash<span class="w"> </span>dev/sphinx/scripts/build_docs.sh
-
-<span class="c1"># Windows (PowerShell)</span>
-pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[docs]&quot;</span>
-.<span class="se">\d</span>ev<span class="se">\s</span>phinx<span class="se">\s</span>cripts<span class="se">\b</span>uild_docs.ps1
+</pre></div>
+</div>
+<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="c"># Windows (PowerShell)</span>
+<span class="p">.\</span><span class="n">dev</span><span class="p">\</span><span class="n">sphinx</span><span class="p">\</span><span class="n">scripts</span><span class="p">\</span><span class="n">build_docs</span><span class="p">.</span><span class="n">ps1</span>
 </pre></div>
 </div>
 </section>

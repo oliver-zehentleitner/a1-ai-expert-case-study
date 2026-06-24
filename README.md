@@ -7,9 +7,11 @@ Solution to the [A1 Telekom Austria AI Expert case study](./assignment/Fallbeisp
 
 The SMS dataset is located at
 [`./assignment/3D8026C4.zip/SMSSpamCollection`](./assignment/3D8026C4.zip/SMSSpamCollection),
-based on the publicly available
-[SMS Spam Collection v.1](http://www.dt.fee.unicamp.br/~tiago/smsspamcollection/)
-by Tiago A. Almeida and José María Gómez Hidalgo. Used here for this case study only.
+based on the *SMS Spam Collection v.1* by Tiago A. Almeida and José María Gómez Hidalgo
+(`http://www.dt.fee.unicamp.br/~tiago/smsspamcollection/` — canonical citation URL,
+no longer reachable; it was a personal academic page at UNICAMP that disappeared when
+the author left the institution — the dataset itself is included in the assignment ZIP).
+Used here for this case study only.
 
 ---
 
@@ -417,12 +419,16 @@ sms-analyze docs
 To rebuild the docs from source (e.g. after code changes):
 
 ```bash
-# Linux / macOS
-pip install -e ".[docs]"                    # first time only
-bash dev/sphinx/scripts/build_docs.sh
+pip install -e ".[docs]"   # first time only (Linux / macOS / Windows)
+```
 
+```bash
+# Linux / macOS
+bash dev/sphinx/scripts/build_docs.sh
+```
+
+```powershell
 # Windows (PowerShell)
-pip install -e ".[docs]"
 .\dev\sphinx\scripts\build_docs.ps1
 ```
 
