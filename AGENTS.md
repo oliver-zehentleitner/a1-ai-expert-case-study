@@ -29,7 +29,7 @@ not to ship a product.
 | `notebooks/` | Jupyter presentation layer — imports the package, shows results |
 | `tests/` | pytest unit tests |
 | `dev/sphinx/config/` | Sphinx source files (`conf.py`, `*.rst`) — edit these |
-| `dev/sphinx/scripts/` | `build_docs.sh`, `install_docs_deps.sh` |
+| `dev/sphinx/scripts/` | `build_docs.sh` (Linux/macOS), `build_docs.ps1` (Windows), `install_docs_deps.sh` |
 | `docs/` | Committed generated HTML — built from `dev/sphinx/config/`, shipped as-is |
 | `assignment/` | Original case study PDF + dataset ZIP (read-only, do not modify) |
 | `outputs/` | Generated plots and saved models — **fully gitignored** (only `.gitkeep` tracked); populated on each run |
@@ -336,18 +336,23 @@ cryptic result is worse than an explicit abort.
 ```
 dev/sphinx/
 ├── config/     ← Sphinx sourcedir (conf.py + .rst files) — edit these
-└── scripts/    ← build_docs.sh, install_docs_deps.sh
+└── scripts/    ← build_docs.sh / build_docs.ps1, install_docs_deps.sh
 
 docs/           ← committed generated HTML — do not edit manually
 ```
 
 Build:
 ```bash
+# Linux / macOS
 pip install -e ".[docs]"                      # first time only
 bash dev/sphinx/scripts/build_docs.sh         # build into docs/
+
+# Windows (PowerShell)
+pip install -e ".[docs]"
+.\dev\sphinx\scripts\build_docs.ps1
 ```
 
-`build_docs.sh` also copies `assignment/` into `docs/assignment/` so that
+`build_docs.sh` / `build_docs.ps1` also copies `assignment/` into `docs/assignment/` so that
 relative links in `README.md` resolve correctly when `docs/index.html` is
 opened directly (local file, GitHub Pages, or `sms-analyze docs`).
 
