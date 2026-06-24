@@ -115,20 +115,29 @@ All normalisation happens in `preprocess(text: str) -> str`.
 **Pattern application order matters** — `__USER__` must be matched before
 the general `__URL__` pass or username placeholders get misclassified as links.
 
+**Real user content — tokenised:**
+
 | Input pattern | Regex | Output |
 |--------------|-------|--------|
-| `Ü` / `ü` | `_U_UMLAUT` | `u` (Nokia keyboard artefact, applied first) |
-| `@ &lt;URL&gt;` | `_AT_USER_HTML` | `__USER__` |
+| `Ü` / `ü` | `_U_UMLAUT` | `u` (Nokia keyboard artefact) |
 | `@handle` | `_AT_USER_RAW` | `__USER__` |
-| `&lt;URL&gt;` | `_HTML_URL` | `__URL__` |
 | `http://…`, `www.…` | `_REAL_URL` | `__URL__` |
-| `&lt;#&gt;`, `&lt;DECIMAL&gt;`, `&lt;NUMBER&gt;` | `_HTML_NUM` | `__NUM__` |
-| `&lt;TIME&gt;` | `_HTML_TIME` | `__TIME__` |
-| `&lt;EMAIL&gt;` | `_HTML_EMAIL` | `__EMAIL__` |
-| `£`, `$`, `€`, `¥`, `₹`, `₽`, `₩`, `₿` | `_CURRENCY` | `__CURRENCY__` |
 | standalone digits (≥ 2) | `_STANDALONE_NR` | `__NUM__` |
-| `&amp;` | `_HTML_AMP` | `and` |
-| remaining `&lt;…&gt;` | `_HTML_LEFTOVER` | *(removed + WARNING logged; dead code on current dataset)* |
+| `£`, `$`, `€`, `¥`, `₹`, `₽`, `₩`, `₿` | `_CURRENCY` | `__CURRENCY__` |
+| `&amp;` | `_HTML_AMP` | `and` (restores real `&` character) |
+
+**NUS anonymisation placeholders — removed (not replaced):**
+The original content (phone number, URL, time, …) is gone; replacing with a
+token would invent content. All NUS tokens are 100 % HAM-only.
+
+| Input pattern | Regex |
+|--------------|-------|
+| `@ &lt;URL&gt;` | `_AT_USER_HTML` |
+| `&lt;URL&gt;` | `_HTML_URL` |
+| `&lt;#&gt;`, `&lt;DECIMAL&gt;`, `&lt;NUMBER&gt;` | `_HTML_NUM` |
+| `&lt;TIME&gt;` | `_HTML_TIME` |
+| `&lt;EMAIL&gt;` | `_HTML_EMAIL` |
+| any remaining `&lt;…&gt;` | `_HTML_LEFTOVER` *(+ WARNING logged)* |
 
 This function is also the first step of the serialised sklearn `Pipeline`
 (see Classification section). Preprocessing at inference is therefore automatic.
