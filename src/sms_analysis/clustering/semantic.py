@@ -88,7 +88,8 @@ class SemanticClusterer:
             best_k = self.n_clusters
             inertias: list[float] = []
         else:
-            best_k, inertias = self._select_k(embeddings, k_range)
+            safe_k_range = range(k_range.start, min(k_range.stop, len(embeddings)), k_range.step)
+            best_k, inertias = self._select_k(embeddings, safe_k_range)
 
         labels = self._kmeans(embeddings, best_k)
         score = silhouette_score(
