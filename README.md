@@ -68,13 +68,18 @@ All variables use the `SMS_` prefix (see `.env.example`).
 
 ### Source and class distribution
 
-The dataset contains 5,574 messages in the raw file (5,572 unique after
-deduplication), labelled by hand:
+The raw file contains 5,574 messages labelled by hand:
 
 | Class | Count | Share |
 |-------|------:|------:|
 | HAM   | 4,827 |  86 % |
 | SPAM  |   747 |  14 % |
+
+**Duplicate rows:** 403 of the 5,574 rows are exact duplicates (309 HAM / 94 SPAM).
+5,171 unique message texts remain after deduplication.
+No duplicate pair carries conflicting labels.
+For evaluation, the classifier uses the deduplicated set to prevent the same
+text from appearing in both train and test splits.
 
 This imbalance is why accuracy is a meaningless metric here — a model that
 always predicts HAM scores 86 % without learning anything useful.
@@ -95,11 +100,11 @@ and processed differently, which has direct consequences for preprocessing
 ### HTML-encoded tokens — investigation and findings
 
 The raw data contains HTML-encoded strings such as `&lt;URL&gt;` and `&lt;#&gt;`.
-Rather than assuming their origin, we verified it by counting occurrences
-per class across every token type:
+Rather than assuming their origin, we verified it by counting how many
+messages contain each token type, broken down by class:
 
-| Token | Count | HAM | SPAM |
-|-------|------:|----:|-----:|
+| Token | Messages containing token | HAM | SPAM |
+|-------|-------------------------:|----:|-----:|
 | `&lt;#&gt;` | 214 | 214 | 0 |
 | `&lt;DECIMAL&gt;` | 21 | 21 | 0 |
 | `&lt;TIME&gt;` | 7 | 7 | 0 |
@@ -291,7 +296,9 @@ setting expectations.
 **Evaluation — F1-SPAM and ROC-AUC (not accuracy)**
 The dataset is imbalanced (86 / 14). A model that always predicts HAM scores 86 % accuracy
 without learning anything. F1-SPAM and ROC-AUC are the meaningful primary metrics.
-Stratified k-fold cross-validation preserves the class ratio in every fold.
+The CLI evaluation uses a single stratified 80/20 train/test split on the deduplicated
+dataset. The codebase also includes `StratifiedKFold` utilities for cross-validation
+where a more robust estimate across multiple folds is needed.
 
 ### GenAI / Embeddings (Part 2)
 

@@ -77,7 +77,8 @@ def run_classification(settings: Settings, model_type: str) -> None:
     from .data.loader import load_dataset
     from .visualization.plots import plot_confusion_matrix, plot_roc_curve, save_figure
 
-    dataset = load_dataset(settings.data_path)
+    dataset = load_dataset(settings.data_path).deduplicated
+    print(f"Evaluating on {len(dataset)} unique messages (duplicates removed to prevent train/test leakage)")
     X_train, X_test, y_train, y_test = train_test_split(
         dataset.texts, dataset.labels, test_size=0.2, stratify=dataset.labels, random_state=42
     )
@@ -104,6 +105,8 @@ def run_classification(settings: Settings, model_type: str) -> None:
 
 
 def run_clustering(settings: Settings, args: argparse.Namespace) -> None:
+    import random
+
     from .clustering.semantic import SemanticClusterer
     from .data.loader import load_dataset
     from .interactive import build_provider
@@ -112,18 +115,48 @@ def run_clustering(settings: Settings, args: argparse.Namespace) -> None:
     dataset  = load_dataset(settings.data_path)
     provider = build_provider(args, settings)
 
-    texts = dataset.texts
+    texts  = dataset.normalized_texts
+    labels = dataset.labels
     if args.sample and args.sample < len(texts):
-        import random
         random.seed(42)
-        texts = random.sample(texts, args.sample)
+        indices = random.sample(range(len(texts)), args.sample)
+        texts  = [texts[i]  for i in indices]
+        labels = [labels[i] for i in indices]
 
     clusterer = SemanticClusterer(provider, n_clusters=args.k or None)
     result    = clusterer.fit(texts)
 
     print(result.summary())
+    _print_cluster_summary(result.labels, texts, labels)
+
     fig = plot_clusters_2d(result.embeddings_2d, result.labels, texts)
     save_figure(fig, settings.outputs_dir / "semantic_clusters.png")
+
+
+def _print_cluster_summary(
+    cluster_labels: "np.ndarray",  # type: ignore[name-defined]
+    texts: list[str],
+    class_labels: list[str],
+    n_examples: int = 3,
+) -> None:
+    """Print per-cluster size, spam ratio, and example messages."""
+    import numpy as np
+
+    n_clusters = int(cluster_labels.max()) + 1
+    print(f"\n{'─' * 70}")
+    print(f"{'Cluster':<8} {'Size':>5}  {'SPAM%':>6}  Examples")
+    print(f"{'─' * 70}")
+    for k in range(n_clusters):
+        mask = cluster_labels == k
+        cluster_class = [class_labels[i] for i, m in enumerate(mask) if m]
+        spam_count = sum(1 for l in cluster_class if l == "spam")
+        spam_pct   = 100 * spam_count / len(cluster_class) if cluster_class else 0
+        examples   = [texts[i] for i, m in enumerate(mask) if m][:n_examples]
+        print(f"C{k:<7} {len(cluster_class):>5}  {spam_pct:>5.1f}%")
+        for ex in examples:
+            truncated = ex[:80].replace("\n", " ")
+            print(f"         └ {truncated}")
+    print(f"{'─' * 70}")
 
 
 def run_docs() -> None:
@@ -209,8 +242,12 @@ def main() -> None:
         "clustering":     lambda: run_clustering(settings, args),
     }
 
+    # "all" runs Part 1 (classic ML) only — clustering requires an embedding
+    # provider and is always run explicitly via "sms-analyze clustering".
+    _part1 = ["frequency", "comparison", "ngrams", "classification"]
+
     if args.task == "all":
-        for fn in dispatch.values():
-            fn()
+        for name in _part1:
+            dispatch[name]()
     else:
         dispatch[args.task]()
