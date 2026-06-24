@@ -220,6 +220,22 @@ vocabulary, different fraud patterns, different SMS conventions — and its
 performance would degrade accordingly. The training data does not cover these
 cases, so the model cannot be expected to generalise to them.
 
+**The A1-specific irony**
+
+This case study was issued by A1 Telekom Austria — an Austrian carrier whose
+customers communicate primarily in German (and to a significant degree in
+Turkish, Serbian, and other languages spoken in Austria). A1's real SMS traffic
+would arrive in German. The spam targeting Austrian users would be written in
+German. The fraud patterns — "Sie haben gewonnen", premium-rate numbers starting
+with 0900, Kleinanzeigen scams, Paketbenachrichtigungs-Phishing — are entirely
+absent from this dataset.
+
+In a production context the English training data would need to be replaced
+with labelled Austrian/German traffic. The approach taken here (TF-IDF +
+Logistic Regression + evaluation pipeline) generalises to any language —
+only the training corpus needs to change. Pointing this out explicitly is
+part of answering the case study responsibly.
+
 **Currency symbols as a concrete example**
 
 In this dataset, `£` (British pound) appears almost exclusively in SPAM.
@@ -407,11 +423,25 @@ bash dev/sphinx/scripts/build_docs.sh
 
 ### Use as a library
 
-```python
-from sms_analysis import load_dataset
-from sms_analysis.classification import SpamClassifier
+A runnable end-to-end example is in [`scripts/example.py`](scripts/example.py).
+It loads the dataset, trains the classifier, evaluates it, predicts new messages,
+and prints the top model features.
 
-dataset = load_dataset("assignment/3D8026C4.zip/SMSSpamCollection")
-clf = SpamClassifier("logistic_regression").fit(dataset.texts, dataset.labels)
-print(clf.predict(["WINNER! Claim your free prize now!"]))
+```python
+from pathlib import Path
+from sms_analysis import load_dataset
+from sms_analysis.classification import SpamClassifier, evaluate
+from sklearn.model_selection import train_test_split
+
+dataset = load_dataset(Path("assignment/3D8026C4.zip/SMSSpamCollection")).deduplicated
+X_train, X_test, y_train, y_test = train_test_split(
+    dataset.texts, dataset.labels, test_size=0.2, stratify=dataset.labels, random_state=42
+)
+clf = SpamClassifier("logistic_regression").fit(X_train, y_train)
+result = evaluate(y_test, clf.predict(X_test), clf.predict_proba(X_test))
+print(result.summary())
+# Accuracy=0.963 | F1-SPAM=0.840 | Precision=0.935 | Recall=0.763 | ROC-AUC=0.991
+
+predictions = clf.predict(["WINNER! Claim your free prize now!", "See you at 8?"])
+# ['spam' 'ham']
 ```

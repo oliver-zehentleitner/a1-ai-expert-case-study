@@ -542,6 +542,19 @@ Applied to Austrian, German, or Brazilian traffic, it would encounter different
 vocabulary, different fraud patterns, different SMS conventions — and its
 performance would degrade accordingly. The training data does not cover these
 cases, so the model cannot be expected to generalise to them.</p>
+<p><strong>The A1-specific irony</strong></p>
+<p>This case study was issued by A1 Telekom Austria — an Austrian carrier whose
+customers communicate primarily in German (and to a significant degree in
+Turkish, Serbian, and other languages spoken in Austria). A1’s real SMS traffic
+would arrive in German. The spam targeting Austrian users would be written in
+German. The fraud patterns — “Sie haben gewonnen”, premium-rate numbers starting
+with 0900, Kleinanzeigen scams, Paketbenachrichtigungs-Phishing — are entirely
+absent from this dataset.</p>
+<p>In a production context the English training data would need to be replaced
+with labelled Austrian/German traffic. The approach taken here (TF-IDF +
+Logistic Regression + evaluation pipeline) generalises to any language —
+only the training corpus needs to change. Pointing this out explicitly is
+part of answering the case study responsibly.</p>
 <p><strong>Currency symbols as a concrete example</strong></p>
 <p>In this dataset, <code class="docutils literal notranslate"><span class="pre">£</span></code> (British pound) appears almost exclusively in SPAM.
 Without normalisation, the model would learn “£ = spam signal” — which is true
@@ -715,12 +728,25 @@ bash<span class="w"> </span>dev/sphinx/scripts/build_docs.sh
 </section>
 <section id="use-as-a-library">
 <h3>Use as a library<a class="headerlink" href="#use-as-a-library" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">sms_analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_dataset</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">sms_analysis.classification</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpamClassifier</span>
+<p>A runnable end-to-end example is in <a class="reference internal" href="#scripts/example.py"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">scripts/example.py</span></code></span></a>.
+It loads the dataset, trains the classifier, evaluates it, predicts new messages,
+and prints the top model features.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sms_analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_dataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sms_analysis.classification</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpamClassifier</span><span class="p">,</span> <span class="n">evaluate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.model_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">train_test_split</span>
 
-<span class="n">dataset</span> <span class="o">=</span> <span class="n">load_dataset</span><span class="p">(</span><span class="s2">&quot;assignment/3D8026C4.zip/SMSSpamCollection&quot;</span><span class="p">)</span>
-<span class="n">clf</span> <span class="o">=</span> <span class="n">SpamClassifier</span><span class="p">(</span><span class="s2">&quot;logistic_regression&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">texts</span><span class="p">,</span> <span class="n">dataset</span><span class="o">.</span><span class="n">labels</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">([</span><span class="s2">&quot;WINNER! Claim your free prize now!&quot;</span><span class="p">]))</span>
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">load_dataset</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;assignment/3D8026C4.zip/SMSSpamCollection&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">deduplicated</span>
+<span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span>
+    <span class="n">dataset</span><span class="o">.</span><span class="n">texts</span><span class="p">,</span> <span class="n">dataset</span><span class="o">.</span><span class="n">labels</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">stratify</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">labels</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span>
+<span class="p">)</span>
+<span class="n">clf</span> <span class="o">=</span> <span class="n">SpamClassifier</span><span class="p">(</span><span class="s2">&quot;logistic_regression&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">evaluate</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">),</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">X_test</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">summary</span><span class="p">())</span>
+<span class="c1"># Accuracy=0.963 | F1-SPAM=0.840 | Precision=0.935 | Recall=0.763 | ROC-AUC=0.991</span>
+
+<span class="n">predictions</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">([</span><span class="s2">&quot;WINNER! Claim your free prize now!&quot;</span><span class="p">,</span> <span class="s2">&quot;See you at 8?&quot;</span><span class="p">])</span>
+<span class="c1"># [&#39;spam&#39; &#39;ham&#39;]</span>
 </pre></div>
 </div>
 </section>
