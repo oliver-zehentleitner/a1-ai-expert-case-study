@@ -32,7 +32,8 @@ not to ship a product.
 | `dev/sphinx/scripts/` | `build_docs.sh`, `install_docs_deps.sh` |
 | `docs/` | Committed generated HTML — built from `dev/sphinx/config/`, shipped as-is |
 | `assignment/` | Original case study PDF + dataset ZIP (read-only, do not modify) |
-| `outputs/` | Generated plots and saved models (tracked only as `.gitkeep`) |
+| `outputs/` | Generated plots and saved models — **fully gitignored** (only `.gitkeep` tracked); populated on each run |
+| `solution/` | Committed snapshot of one clean run — plots + trained models, the shipped deliverable |
 | `learning/` | Personal study notes — **local only** (see `.gitignore`) |
 
 ---
@@ -56,20 +57,20 @@ always predicts HAM scores 86% without learning anything. Use **F1-SPAM** and
 ### HTML-encoded tokens in the raw data
 
 Some messages contain HTML-encoded entities like `&lt;URL&gt;` or `&lt;#&gt;`.
-Their exact origin is **unverified** — they could be researcher-applied
-anonymisation placeholders or copy-paste artefacts from a smartphone browser.
-This would need to be checked against the original data collection notes.
+**Origin verified:** every such token appears exclusively in HAM messages —
+zero occurrences in SPAM. They are privacy-driven anonymisation placeholders
+inserted by the NUS SMS Corpus team before publishing (phone numbers, amounts,
+times, and e-mail addresses were replaced with typed tokens).
+The SPAM messages (Grumbletext) were not processed the same way and retain
+real phone numbers, prices, and URLs.
 
-Observed tokens and their apparent meaning:
-
-| Raw token | Observed meaning |
-|-----------|-----------------|
-| `&lt;#&gt;` | A number (phone number, amount, date, …) |
-| `&lt;URL&gt;` | A hyperlink **or a username/handle** (e.g. `@ &lt;URL&gt;`) |
-| `&lt;DECIMAL&gt;` | A decimal number |
-| `&lt;NUMBER&gt;` | A numeric value |
-| `&amp;` | Ampersand |
-| Other `&lt;…&gt;` | Further tokens of unclear origin |
+| Token | Messages containing | HAM | SPAM |
+|-------|--------------------:|----:|-----:|
+| `&lt;#&gt;` | 214 | 214 | 0 |
+| `&lt;DECIMAL&gt;` | 21 | 21 | 0 |
+| `&lt;TIME&gt;` | 7 | 7 | 0 |
+| `&lt;URL&gt;` | 3 | 3 | 0 |
+| `&lt;EMAIL&gt;` | 1 | 1 | 0 |
 
 These are **not** real HTML — they are ASCII text stored in a plain TSV file.
 
@@ -116,11 +117,15 @@ the general `__URL__` pass or username placeholders get misclassified as links.
 
 | Input pattern | Regex | Output |
 |--------------|-------|--------|
+| `Ü` / `ü` | `_U_UMLAUT` | `u` (Nokia keyboard artefact, applied first) |
 | `@ &lt;URL&gt;` | `_AT_USER_HTML` | `__USER__` |
 | `@handle` | `_AT_USER_RAW` | `__USER__` |
 | `&lt;URL&gt;` | `_HTML_URL` | `__URL__` |
 | `http://…`, `www.…` | `_REAL_URL` | `__URL__` |
 | `&lt;#&gt;`, `&lt;DECIMAL&gt;`, `&lt;NUMBER&gt;` | `_HTML_NUM` | `__NUM__` |
+| `&lt;TIME&gt;` | `_HTML_TIME` | `__TIME__` |
+| `&lt;EMAIL&gt;` | `_HTML_EMAIL` | `__EMAIL__` |
+| `£`, `$`, `€`, `¥`, `₹`, `₽`, `₩`, `₿` | `_CURRENCY` | `__CURRENCY__` |
 | standalone digits (≥ 2) | `_STANDALONE_NR` | `__NUM__` |
 | `&amp;` | `_HTML_AMP` | `and` |
 | remaining `&lt;…&gt;` | `_HTML_LEFTOVER` | *(removed)* |
@@ -137,7 +142,7 @@ This function is also the first step of the serialised sklearn `Pipeline`
 ```
 FunctionTransformer(_preprocess_batch)
     → TfidfVectorizer(ngram_range=(1,2), max_features=10_000, sublinear_tf=True)
-    → LogisticRegression(C=1.0) or MultinomialNB()
+    → LogisticRegression(solver="liblinear", C=1.0) or MultinomialNB()
 ```
 
 The pipeline is saved as a `.joblib` file. Loading it gives a fully functional
@@ -169,8 +174,13 @@ joblib cannot pickle lambdas. If you move or rename it, model serialisation brea
 ### Evaluation
 
 Primary metrics: **F1-SPAM** and **ROC-AUC** (accuracy is misleading here).
-Cross-validation is stratified to preserve the 86/14 ratio in every fold.
+The CLI uses a single stratified 80/20 train/test split on the **deduplicated**
+dataset (`SMSDataset.deduplicated` — 5,171 unique messages; 403 raw duplicates
+removed to prevent the same text appearing in both splits).
 Results are encapsulated in `EvaluationResult` (dataclass).
+
+Actual metrics on deduplicated data:
+F1-SPAM=0.840, Precision=0.935, Recall=0.763, ROC-AUC=0.991
 
 ---
 
@@ -262,7 +272,7 @@ sms-analyze ngrams          # Task 3 – top bigrams and trigrams
 sms-analyze classification  # Task 4 – LR classifier + evaluation
 sms-analyze clustering      # Task 5 – semantic clustering (Ollama default)
 sms-analyze docs            # opens docs/index.html in default browser
-sms-analyze all             # runs tasks 1–5 in sequence
+sms-analyze all             # runs Part 1 only (tasks 1–4); clustering is always explicit
 ```
 
 Clustering-specific flags:
@@ -293,6 +303,11 @@ import-path bugs in tests and notebooks.
 Domain objects (`SMSMessage`, `SMSDataset`, `ClusteringResult`) are Pydantic
 models. Config is `pydantic-settings`. Free validation, IDE auto-complete, and
 `.model_dump()` serialisation.
+
+Key `SMSDataset` properties beyond `.texts` / `.labels`:
+- `.normalized_texts` / `.normalized_ham_texts` / `.normalized_spam_texts` — on-demand normalisation via `preprocess()`
+- `.deduplicated` — new `SMSDataset` with exact duplicate texts removed; use before train/test splits
+- `.ham` / `.spam` — filtered sublists
 
 ### Strategy pattern for embedding providers
 
@@ -378,9 +393,7 @@ The following files exist on each developer's machine but are **never committed*
 | `AGENTS.override.md` | Local instruction overrides for any AI agent |
 | `CLAUDE.local.md` | Alternative local Claude config |
 | `learning/` | Personal study notes and case-study prep material |
-| `outputs/*.joblib` | Trained model artefacts |
-| `outputs/*.pkl` | Pickled intermediate data |
-| `outputs/embeddings_cache/` | Cached embedding vectors |
+| `outputs/*` | All generated files (plots, models, cache) — only `.gitkeep` committed |
 | `dev/sphinx/_build/` | Sphinx build cache |
 
 **AI agents:** if `AGENTS.override.md` is present, read it — it contains
@@ -398,6 +411,7 @@ project- and user-specific instruction overrides.
 | `docs/` | Generated HTML (`_build/` excluded) |
 | `.env.example` | Template — no real secrets |
 | `notebooks/` | With cleared outputs |
+| `solution/` | Committed plots + trained models from one clean run |
 
 ---
 

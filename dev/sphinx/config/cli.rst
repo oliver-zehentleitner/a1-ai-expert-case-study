@@ -14,8 +14,10 @@ Tasks
 -----
 
 ``frequency``
-   Task 1 — Top 20 word frequencies across all SMS messages.
-   Outputs: ``outputs/word_frequencies.png``
+   Task 1 — Word frequencies across all SMS, by class (HAM / SPAM), and at
+   multiple depths (top 20 / 50 / 100).
+   Outputs: ``outputs/word_frequencies_top{20,50,100}.png``,
+   ``outputs/word_frequencies_by_class_top{20,50}.png``
 
 ``comparison``
    Task 2 — HAM vs. SPAM distinctive vocabulary via log-odds ratio with Laplace
@@ -23,21 +25,26 @@ Tasks
    Outputs: ``outputs/ham_spam_comparison.png``
 
 ``ngrams``
-   Task 3 — Most frequent bigrams and trigrams per class.
-   Outputs: ``outputs/bigrams.png``, ``outputs/trigrams.png``
+   Task 3 — Most frequent bigrams and trigrams, combined and per-class side by
+   side.
+   Outputs: ``outputs/bigrams_all_top20.png``, ``outputs/bigrams_by_class_top20.png``,
+   ``outputs/trigrams_all_top15.png``, ``outputs/trigrams_by_class_top15.png``
 
 ``classification``
    Task 4 — Train and evaluate a SPAM/HAM classifier (Logistic Regression or
-   Naive Bayes). Produces confusion matrix, ROC curve, and feature-importance
-   plot.  Saves the fitted model to ``outputs/model_<type>.joblib``.
+   Naive Bayes) on the deduplicated dataset (5,171 unique messages).
+   Produces confusion matrix and ROC curve.
+   Saves the fitted model to ``outputs/model_<type>.joblib``.
 
 ``clustering``
-   Task 5 — Embed all SMS messages and cluster them semantically with K-Means.
-   K is selected automatically via silhouette score. Saves a 2-D UMAP scatter
-   plot.
+   Task 5 — Embed all SMS messages (normalised) and cluster them semantically
+   with K-Means. K is selected automatically via silhouette score. Prints a
+   per-cluster summary (size, spam%, example messages) and saves a 2-D UMAP
+   scatter plot.
 
 ``all``
-   Run all five tasks in sequence.
+   Run Part 1 (Tasks 1–4) in sequence. Clustering requires an embedding provider
+   and is always run explicitly via ``sms-analyze clustering``.
 
 Options
 -------

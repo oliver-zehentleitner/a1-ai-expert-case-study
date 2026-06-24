@@ -189,8 +189,9 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+  <p class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">AI Expert Case Study – Oliver Zehentleitner</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../cli.html">CLI Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../architecture.html">Architecture</a></li>
@@ -230,20 +231,53 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Text preprocessing for the SMS Spam Collection dataset.</span>
 
-<span class="sd">Several messages contain HTML-encoded tokens such as ``&amp;lt;URL&amp;gt;`` and ``&amp;lt;#&amp;gt;``.</span>
-<span class="sd">Their origin is unclear (researcher anonymisation or smartphone copy-paste</span>
-<span class="sd">artefacts) and would need to be verified against the original collection notes.</span>
-<span class="sd">Some messages also contain raw URLs (``http://…``).</span>
+<span class="sd">HTML-encoded tokens such as ``&amp;lt;URL&amp;gt;`` and ``&amp;lt;#&amp;gt;`` appear exclusively in HAM</span>
+<span class="sd">messages and originate from the NUS SMS Corpus (National University of Singapore).</span>
+<span class="sd">Before publishing their dataset, the NUS team replaced sensitive values —</span>
+<span class="sd">phone numbers, amounts, URLs, times, e-mail addresses — with typed HTML-encoded</span>
+<span class="sd">placeholders to protect the privacy of contributors.  SPAM messages (sourced</span>
+<span class="sd">from Grumbletext and other collections) were not anonymised in the same way and</span>
+<span class="sd">retain real phone numbers, prices, and links.</span>
 
-<span class="sd">This module normalises all observed forms to consistent semantic tokens so that</span>
-<span class="sd">the model sees the same representation at training time and at inference time.</span>
-<span class="sd">Skipping this step at inference would cause train-serve skew.</span>
+<span class="sd">Verified token inventory (all HAM-only):</span>
+
+<span class="sd">=================  =====</span>
+<span class="sd">Token              Count</span>
+<span class="sd">=================  =====</span>
+<span class="sd">``&amp;lt;#&amp;gt;``         214</span>
+<span class="sd">``&amp;lt;DECIMAL&amp;gt;``    21</span>
+<span class="sd">``&amp;lt;TIME&amp;gt;``        7</span>
+<span class="sd">``&amp;lt;URL&amp;gt;``         3</span>
+<span class="sd">``&amp;lt;EMAIL&amp;gt;``       1</span>
+<span class="sd">=================  =====</span>
+
+<span class="sd">This module is the **single source of truth** for text normalisation.</span>
+<span class="sd">The raw dataset is never modified; normalisation is applied on demand via</span>
+<span class="sd">:meth:`~sms_analysis.data.loader.SMSDataset.normalized_texts`.</span>
+<span class="sd">The sklearn classification pipeline also uses ``preprocess()`` as its first</span>
+<span class="sd">step, guaranteeing train-serve consistency.</span>
 
 <span class="sd">Tokens produced</span>
 <span class="sd">---------------</span>
-<span class="sd">``__USER__``  – ``@ &amp;lt;URL&amp;gt;`` or ``@handle`` (username / social-media mention)</span>
-<span class="sd">``__URL__``   – URL placeholder or real URL</span>
-<span class="sd">``__NUM__``   – numeric placeholder or standalone number</span>
+<span class="sd">``__USER__``      – ``@ &amp;lt;URL&amp;gt;`` or ``@handle`` (username / social-media mention)</span>
+<span class="sd">``__URL__``       – URL placeholder or real URL</span>
+<span class="sd">``__NUM__``       – numeric / decimal / hash placeholder or standalone number</span>
+<span class="sd">``__TIME__``      – time placeholder from NUS anonymisation</span>
+<span class="sd">``__EMAIL__``     – e-mail address placeholder from NUS anonymisation</span>
+<span class="sd">``__CURRENCY__``  – any currency symbol (£, $, €, ¥, ₹, …), normalised to remove</span>
+<span class="sd">                    locale bias; amounts following the symbol are caught by ``__NUM__``</span>
+
+<span class="sd">Character normalisation</span>
+<span class="sd">-----------------------</span>
+<span class="sd">``Ü`` → ``u``  The NUS SMS Corpus contains ~50 HAM messages where one or a few</span>
+<span class="sd">contributors used ``Ü`` as SMS shorthand for &quot;you&quot; — identical in meaning to the</span>
+<span class="sd">common ``u``.  The likely cause is a Nokia phone with a European language pack</span>
+<span class="sd">where the ``U`` key cycled to ``Ü`` on repeat press.  In this dataset ``Ü``</span>
+<span class="sd">appears 50× in HAM and 0× in SPAM.  Keeping it as a distinct token would create</span>
+<span class="sd">a spurious correlation: the model would learn ``ü`` → HAM, making it trivially</span>
+<span class="sd">exploitable — a single ``Ü`` appended to a SPAM message could flip the</span>
+<span class="sd">classification.  Normalising ``Ü`` → ``u`` is semantically correct and closes</span>
+<span class="sd">this adversarial attack surface.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
@@ -254,10 +288,14 @@
 <span class="n">_AT_USER_RAW</span>   <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;@\w+&#39;</span><span class="p">)</span>
 <span class="n">_HTML_URL</span>      <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;&amp;lt;URL&amp;gt;&#39;</span><span class="p">,</span>                   <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
 <span class="n">_HTML_NUM</span>      <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;&amp;lt;(?:#|DECIMAL|NUMBER)&amp;gt;&#39;</span><span class="p">,</span>  <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+<span class="n">_HTML_TIME</span>     <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;&amp;lt;TIME&amp;gt;&#39;</span><span class="p">,</span>                  <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+<span class="n">_HTML_EMAIL</span>    <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;&amp;lt;EMAIL&amp;gt;&#39;</span><span class="p">,</span>                 <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
 <span class="n">_HTML_AMP</span>      <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;&amp;amp;&#39;</span><span class="p">,</span>                         <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
 <span class="n">_HTML_LEFTOVER</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;&amp;lt;.*?&amp;gt;&#39;</span><span class="p">,</span>                   <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
 <span class="n">_REAL_URL</span>      <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;https?://\S+|www\.\S+&#39;</span><span class="p">,</span>         <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+<span class="n">_CURRENCY</span>      <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[£$€¥₹₽₩₿]&#39;</span><span class="p">)</span>
 <span class="n">_STANDALONE_NR</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\b\d{2,}\b&#39;</span><span class="p">)</span>
+<span class="n">_U_UMLAUT</span>      <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Ü&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="preprocess">
@@ -291,14 +329,24 @@
 
 <span class="sd">        &gt;&gt;&gt; preprocess(&quot;Good &amp;amp; bad&quot;)</span>
 <span class="sd">        &#39;Good and bad&#39;</span>
+
+<span class="sd">        &gt;&gt;&gt; preprocess(&quot;Win £500 cash now!&quot;)</span>
+<span class="sd">        &#39;Win __CURRENCY__ __NUM__ cash now!&#39;</span>
+
+<span class="sd">        &gt;&gt;&gt; preprocess(&quot;Claim your $1000 prize&quot;)</span>
+<span class="sd">        &#39;Claim your __CURRENCY__ __NUM__ prize&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_U_UMLAUT</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>               <span class="c1"># Ü/ü → u: Nokia keyboard artifact, closes spurious HAM signal</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">_AT_USER_HTML</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__USER__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>   <span class="c1"># @ &lt;URL&gt; → username, before general URL pass</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">_AT_USER_RAW</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__USER__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>    <span class="c1"># @handle not caught by HTML pass</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_URL</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__URL__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_NUM</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__NUM__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_TIME</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__TIME__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_EMAIL</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__EMAIL__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_AMP</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot; and &quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_LEFTOVER</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">_REAL_URL</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__URL__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_CURRENCY</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__CURRENCY__ &quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>  <span class="c1"># before STANDALONE_NR so £500 → __CURRENCY__ __NUM__</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">_STANDALONE_NR</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__NUM__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></div>
 

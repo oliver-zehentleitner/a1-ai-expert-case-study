@@ -338,7 +338,7 @@ pip install -e .
 
 ### Part 1 — Classic ML (fully local, no setup beyond pip install)
 
-**Run all analyses at once:**
+**Run all analyses at once (Part 1 only — Tasks 1–4):**
 ```bash
 sms-analyze all
 ```
@@ -352,7 +352,8 @@ sms-analyze classification   # Task 4 – train, evaluate, save model
 sms-analyze classification --model naive_bayes   # baseline comparison
 ```
 
-Generated plots and models are saved to `outputs/`.
+Generated plots and models are saved to `outputs/` (gitignored — transient).
+A committed snapshot of a clean run is in `solution/`.
 
 **Or open the Jupyter notebooks:**
 ```bash
