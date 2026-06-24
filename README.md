@@ -175,7 +175,7 @@ The full normalisation mapping:
 | `&lt;EMAIL&gt;` | `__EMAIL__` |
 | `£`, `$`, `€`, `¥`, `₹`, `₽`, `₩`, `₿` | `__CURRENCY__` |
 | `&amp;` | `and` |
-| Other `&lt;…&gt;` | removed |
+| Other `&lt;…&gt;` | removed + WARNING logged (dead code on current dataset — no other tokens exist) |
 
 **Why tokens instead of deletion?** The *presence* of a URL, username mention,
 or number is a strong statistical signal — spam messages are token-dense in a

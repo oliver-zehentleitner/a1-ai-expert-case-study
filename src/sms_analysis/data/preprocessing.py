@@ -50,7 +50,10 @@ classification.  Normalising ``Ü`` → ``u`` is semantically correct and closes
 this adversarial attack surface.
 """
 
+import logging
 import re
+
+logger = logging.getLogger(__name__)
 
 # Pre-compiled patterns — compiled once at import time.
 # Order matters: __USER__ must be matched before the general __URL__ pass.
@@ -61,7 +64,7 @@ _HTML_NUM      = re.compile(r'&lt;(?:#|DECIMAL|NUMBER)&gt;',  re.IGNORECASE)
 _HTML_TIME     = re.compile(r'&lt;TIME&gt;',                  re.IGNORECASE)
 _HTML_EMAIL    = re.compile(r'&lt;EMAIL&gt;',                 re.IGNORECASE)
 _HTML_AMP      = re.compile(r'&amp;',                         re.IGNORECASE)
-_HTML_LEFTOVER = re.compile(r'&lt;.*?&gt;',                   re.IGNORECASE)
+_HTML_LEFTOVER = re.compile(r'(&lt;.*?&gt;)',                  re.IGNORECASE)
 _REAL_URL      = re.compile(r'https?://\S+|www\.\S+',         re.IGNORECASE)
 _CURRENCY      = re.compile(r'[£$€¥₹₽₩₿]')
 _STANDALONE_NR = re.compile(r'\b\d{2,}\b')
@@ -112,6 +115,8 @@ def preprocess(text: str) -> str:
     text = _HTML_TIME.sub("__TIME__", text)
     text = _HTML_EMAIL.sub("__EMAIL__", text)
     text = _HTML_AMP.sub(" and ", text)
+    for unknown in _HTML_LEFTOVER.findall(text):
+        logger.warning("Unknown HTML-encoded token in preprocessing input: %r", unknown)
     text = _HTML_LEFTOVER.sub("", text)
     text = _REAL_URL.sub("__URL__", text)
     text = _CURRENCY.sub("__CURRENCY__ ", text)  # before STANDALONE_NR so £500 → __CURRENCY__ __NUM__

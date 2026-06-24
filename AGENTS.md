@@ -128,7 +128,7 @@ the general `__URL__` pass or username placeholders get misclassified as links.
 | `£`, `$`, `€`, `¥`, `₹`, `₽`, `₩`, `₿` | `_CURRENCY` | `__CURRENCY__` |
 | standalone digits (≥ 2) | `_STANDALONE_NR` | `__NUM__` |
 | `&amp;` | `_HTML_AMP` | `and` |
-| remaining `&lt;…&gt;` | `_HTML_LEFTOVER` | *(removed)* |
+| remaining `&lt;…&gt;` | `_HTML_LEFTOVER` | *(removed + WARNING logged; dead code on current dataset)* |
 
 This function is also the first step of the serialised sklearn `Pipeline`
 (see Classification section). Preprocessing at inference is therefore automatic.
