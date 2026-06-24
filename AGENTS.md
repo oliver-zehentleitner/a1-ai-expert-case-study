@@ -46,7 +46,7 @@ not to ship a product.
 
 | Class | Count | Share |
 |-------|------:|------:|
-| HAM   | 4,825 |  86 % |
+| HAM   | 4,827 |  86 % |
 | SPAM  |   747 |  14 % |
 
 This imbalance is fundamental: accuracy is a meaningless metric. A model that

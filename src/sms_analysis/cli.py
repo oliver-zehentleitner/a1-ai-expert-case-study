@@ -8,13 +8,26 @@ from .config import Settings, configure_logging
 def run_frequency(settings: Settings) -> None:
     from .analysis.frequency import word_frequencies
     from .data.loader import load_dataset
-    from .visualization.plots import plot_word_frequencies, save_figure
+    from .visualization.plots import (
+        plot_word_frequencies,
+        plot_word_frequencies_by_class,
+        save_figure,
+    )
 
     dataset = load_dataset(settings.data_path)
-    df = word_frequencies(dataset.texts, top_n=20)
-    fig = plot_word_frequencies(df, title="Top 20 Words – All SMS")
-    save_figure(fig, settings.outputs_dir / "word_frequencies.png")
-    print(df.to_string(index=False))
+
+    for top_n in (20, 50, 100):
+        df = word_frequencies(dataset.normalized_texts, top_n=top_n)
+        fig = plot_word_frequencies(df, title=f"Top {top_n} Words – All SMS")
+        save_figure(fig, settings.outputs_dir / f"word_frequencies_top{top_n}.png")
+        if top_n == 20:
+            print(df.to_string(index=False))
+
+    for top_n in (20, 50):
+        ham_df  = word_frequencies(dataset.normalized_ham_texts,  top_n=top_n)
+        spam_df = word_frequencies(dataset.normalized_spam_texts, top_n=top_n)
+        fig = plot_word_frequencies_by_class(ham_df, spam_df, top_n=top_n)
+        save_figure(fig, settings.outputs_dir / f"word_frequencies_by_class_top{top_n}.png")
 
 
 def run_comparison(settings: Settings) -> None:
@@ -23,7 +36,7 @@ def run_comparison(settings: Settings) -> None:
     from .visualization.plots import plot_ham_spam_comparison, save_figure
 
     dataset = load_dataset(settings.data_path)
-    df = log_odds_ratio([m.text for m in dataset.ham], [m.text for m in dataset.spam])
+    df = log_odds_ratio(dataset.normalized_ham_texts, dataset.normalized_spam_texts)
     fig = plot_ham_spam_comparison(df)
     save_figure(fig, settings.outputs_dir / "ham_spam_comparison.png")
     print(df.to_string(index=False))
@@ -32,15 +45,28 @@ def run_comparison(settings: Settings) -> None:
 def run_ngrams(settings: Settings) -> None:
     from .analysis.ngrams import top_ngrams
     from .data.loader import load_dataset
-    from .visualization.plots import plot_ngrams, save_figure
+    from .visualization.plots import plot_ngrams, plot_ngrams_by_class, save_figure
 
     dataset = load_dataset(settings.data_path)
-    for n, label in [(2, "bigrams"), (3, "trigrams")]:
-        df = top_ngrams(dataset.texts, n=n, top_k=15)
+    configs = [
+        (2, "bigrams",  20),
+        (3, "trigrams", 15),
+    ]
+    for n, label, top_k in configs:
+        df = top_ngrams(dataset.normalized_texts, n=n, top_k=top_k)
         fig = plot_ngrams(df, n=n)
-        save_figure(fig, settings.outputs_dir / f"{label}.png")
-        print(f"\n--- Top {label} ---")
+        save_figure(fig, settings.outputs_dir / f"{label}_all_top{top_k}.png")
+        print(f"\n--- Top {label} (all SMS) ---")
         print(df.to_string(index=False))
+
+        ham_df  = top_ngrams(dataset.normalized_ham_texts,  n=n, top_k=top_k)
+        spam_df = top_ngrams(dataset.normalized_spam_texts, n=n, top_k=top_k)
+        fig = plot_ngrams_by_class(ham_df, spam_df, n=n, top_k=top_k)
+        save_figure(fig, settings.outputs_dir / f"{label}_by_class_top{top_k}.png")
+        print(f"\n--- Top {label} HAM ---")
+        print(ham_df.to_string(index=False))
+        print(f"\n--- Top {label} SPAM ---")
+        print(spam_df.to_string(index=False))
 
 
 def run_classification(settings: Settings, model_type: str) -> None:

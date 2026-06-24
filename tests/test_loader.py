@@ -62,8 +62,8 @@ class TestSMSDataset:
 class TestLoadDataset:
     def test_loads_expected_count(self):
         ds = load_dataset(DATASET_PATH)
-        # Actual file contains 5572 valid rows (readme cites 5574 including 2 malformed lines)
-        assert len(ds) == 5572
+        # quoting=QUOTE_NONE ensures all 5574 lines are parsed regardless of quote characters
+        assert len(ds) == 5574
 
     def test_class_balance(self):
         ds = load_dataset(DATASET_PATH)

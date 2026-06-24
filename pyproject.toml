@@ -11,7 +11,6 @@ dependencies = [
     "pandas>=2.2",
     "numpy>=1.26",
     "scikit-learn>=1.5",
-    "nltk>=3.9",
     "matplotlib>=3.9",
     "seaborn>=0.13",
     "pydantic>=2.7",
@@ -46,7 +45,7 @@ sms-analyze = "sms_analysis.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-sms_analysis = ["scripts/*"]
+sms_analysis = ["scripts/*", "analysis/stopwords.txt"]
 
 [tool.ruff]
 line-length = 100
