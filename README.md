@@ -374,10 +374,10 @@ sms-analyze classification --model naive_bayes   # baseline comparison
 ```
 
 Generated plots and trained models are saved to `outputs/` by default.
-`outputs/` is local-only — PNGs, `.joblib`, `.pkl`, and the embeddings cache
-are all gitignored. The directory stays empty in the repo (`.gitkeep`).
+`outputs/` is intentionally empty — it is the runtime output directory and
+its contents are not included in this deliverable.
 
-A committed reference snapshot is in [`solution/`](solution/) — a clean Part 1 run
+A reference snapshot is in [`solution/`](solution/) — a clean Part 1 run
 (Tasks 1–4, both LR and NB). Task 5 (clustering) requires an Ollama installation
 and is not included; run `sms-analyze clustering` separately after completing the
 Ollama setup in `scripts/setup_ollama.sh`.
