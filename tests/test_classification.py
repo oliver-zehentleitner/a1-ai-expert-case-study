@@ -82,6 +82,7 @@ class TestSpamClassifier:
 
         loaded_preds = loaded.predict(ALL_TEXTS)
         assert list(original_preds) == list(loaded_preds)
+        assert loaded.model_type == "logistic_regression"
 
     def test_predict_before_fit_raises(self):
         clf = SpamClassifier("logistic_regression")
