@@ -220,6 +220,22 @@ vocabulary, different fraud patterns, different SMS conventions — and its
 performance would degrade accordingly. The training data does not cover these
 cases, so the model cannot be expected to generalise to them.
 
+**The A1-specific irony**
+
+This case study was issued by A1 Telekom Austria — an Austrian carrier whose
+customers communicate primarily in German (and to a significant degree in
+Turkish, Serbian, and other languages spoken in Austria). A1's real SMS traffic
+would arrive in German. The spam targeting Austrian users would be written in
+German. The fraud patterns — "Sie haben gewonnen", premium-rate numbers starting
+with 0900, Kleinanzeigen scams, Paketbenachrichtigungs-Phishing — are entirely
+absent from this dataset.
+
+In a production context the English training data would need to be replaced
+with labelled Austrian/German traffic. The approach taken here (TF-IDF +
+Logistic Regression + evaluation pipeline) generalises to any language —
+only the training corpus needs to change. Pointing this out explicitly is
+part of answering the case study responsibly.
+
 **Currency symbols as a concrete example**
 
 In this dataset, `£` (British pound) appears almost exclusively in SPAM.
