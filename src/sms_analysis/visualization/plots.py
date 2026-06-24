@@ -41,6 +41,25 @@ def plot_ham_spam_comparison(df: pd.DataFrame) -> plt.Figure:
     return fig
 
 
+def plot_word_frequencies_by_class(
+    ham_df: pd.DataFrame,
+    spam_df: pd.DataFrame,
+    top_n: int = 20,
+) -> plt.Figure:
+    """Side-by-side horizontal bar charts: HAM top words vs SPAM top words."""
+    fig, (ax_ham, ax_spam) = plt.subplots(1, 2, figsize=(14, max(6, top_n * 0.35)))
+    sns.barplot(data=ham_df, x="count", y="word", ax=ax_ham, orient="h", color="steelblue")
+    ax_ham.set_title(f"HAM – Top {top_n} Words", fontsize=13, fontweight="bold")
+    ax_ham.set_xlabel("Count")
+    ax_ham.set_ylabel("")
+    sns.barplot(data=spam_df, x="count", y="word", ax=ax_spam, orient="h", color="tomato")
+    ax_spam.set_title(f"SPAM – Top {top_n} Words", fontsize=13, fontweight="bold")
+    ax_spam.set_xlabel("Count")
+    ax_spam.set_ylabel("")
+    plt.tight_layout()
+    return fig
+
+
 def plot_ngrams(df: pd.DataFrame, n: int = 2) -> plt.Figure:
     """Horizontal bar chart of n-gram frequencies."""
     label = "Bigrams" if n == 2 else "Trigrams" if n == 3 else f"{n}-grams"
@@ -49,6 +68,27 @@ def plot_ngrams(df: pd.DataFrame, n: int = 2) -> plt.Figure:
     ax.set_title(f"Top {label}", fontsize=14, fontweight="bold")
     ax.set_xlabel("Count")
     ax.set_ylabel("")
+    plt.tight_layout()
+    return fig
+
+
+def plot_ngrams_by_class(
+    ham_df: pd.DataFrame,
+    spam_df: pd.DataFrame,
+    n: int = 2,
+    top_k: int = 15,
+) -> plt.Figure:
+    """Side-by-side horizontal bar charts: HAM n-grams vs SPAM n-grams."""
+    label = "Bigrams" if n == 2 else "Trigrams" if n == 3 else f"{n}-grams"
+    fig, (ax_ham, ax_spam) = plt.subplots(1, 2, figsize=(14, max(6, top_k * 0.38)))
+    sns.barplot(data=ham_df, x="count", y="ngram", ax=ax_ham, orient="h", color="steelblue")
+    ax_ham.set_title(f"HAM – Top {top_k} {label}", fontsize=13, fontweight="bold")
+    ax_ham.set_xlabel("Count")
+    ax_ham.set_ylabel("")
+    sns.barplot(data=spam_df, x="count", y="ngram", ax=ax_spam, orient="h", color="tomato")
+    ax_spam.set_title(f"SPAM – Top {top_k} {label}", fontsize=13, fontweight="bold")
+    ax_spam.set_xlabel("Count")
+    ax_spam.set_ylabel("")
     plt.tight_layout()
     return fig
 

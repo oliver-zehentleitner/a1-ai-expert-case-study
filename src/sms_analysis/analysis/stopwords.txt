@@ -1,0 +1,89 @@
+# Domain-specific stopword list for SMS spam/ham analysis.
+# Derived from the top-80 words by raw frequency in the dataset.
+# Only pure function words with no discriminative value for HAM/SPAM are listed.
+#
+# Signal-carrying words are intentionally kept:
+#   SMS shorthand : u, ur, 2, 4, dont, ill, im
+#   spam markers  : call, free, now, send, text, only
+#   HAM markers   : ok, just, know, got, good, come, go, like, love, day, time
+#
+# One word per line. Lines starting with # are ignored. Blank lines are ignored.
+
+# articles
+a
+an
+the
+
+# prepositions
+to
+of
+in
+on
+at
+for
+with
+by
+from
+as
+about
+
+# conjunctions / connectives
+and
+but
+or
+so
+not
+if
+that
+when
+then
+how
+what
+
+# pronouns
+i
+you
+he
+she
+we
+they
+it
+me
+my
+its
+our
+their
+them
+him
+her
+
+# auxiliary verbs
+is
+are
+was
+were
+be
+been
+have
+has
+do
+does
+did
+am
+will
+would
+can
+could
+may
+might
+shall
+should
+
+# other function words
+no
+this
+there
+all
+up
+out
+one

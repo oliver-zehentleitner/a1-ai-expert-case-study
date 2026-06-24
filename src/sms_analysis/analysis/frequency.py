@@ -3,26 +3,27 @@
 import logging
 import string
 from collections import Counter
-from functools import lru_cache
+from pathlib import Path
 
-import nltk
 import pandas as pd
 
 from sms_analysis.data.preprocessing import preprocess
 
 logger = logging.getLogger(__name__)
 
+_STOPWORDS_FILE = Path(__file__).parent / "stopwords.txt"
 
-@lru_cache(maxsize=1)
-def _stopwords() -> frozenset[str]:
-    """Load NLTK stopwords, downloading on first call."""
-    try:
-        from nltk.corpus import stopwords
-        return frozenset(stopwords.words("english"))
-    except LookupError:
-        nltk.download("stopwords", quiet=True)
-        from nltk.corpus import stopwords
-        return frozenset(stopwords.words("english"))
+
+def _load_stopwords() -> frozenset[str]:
+    words: set[str] = set()
+    for line in _STOPWORDS_FILE.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line and not line.startswith("#"):
+            words.add(line.lower())
+    return frozenset(words)
+
+
+_STOPWORDS: frozenset[str] = _load_stopwords()
 
 
 def tokenize(text: str, remove_stopwords: bool = True) -> list[str]:
@@ -40,8 +41,7 @@ def tokenize(text: str, remove_stopwords: bool = True) -> list[str]:
     text = text.lower().translate(str.maketrans("", "", string.punctuation))
     tokens = text.split()
     if remove_stopwords:
-        sw = _stopwords()
-        tokens = [t for t in tokens if t not in sw]
+        tokens = [t for t in tokens if t not in _STOPWORDS]
     return tokens
 
 

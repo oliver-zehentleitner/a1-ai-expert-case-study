@@ -7,6 +7,8 @@ from pathlib import Path
 import pandas as pd
 from pydantic import BaseModel, field_validator
 
+from .preprocessing import preprocess
+
 logger = logging.getLogger(__name__)
 
 
@@ -51,6 +53,21 @@ class SMSDataset(BaseModel):
         return [m.text for m in self.messages]
 
     @property
+    def normalized_texts(self) -> list[str]:
+        """Raw texts passed through the normalization pipeline on demand."""
+        return [preprocess(m.text) for m in self.messages]
+
+    @property
+    def normalized_ham_texts(self) -> list[str]:
+        """Normalized texts for HAM messages only."""
+        return [preprocess(m.text) for m in self.ham]
+
+    @property
+    def normalized_spam_texts(self) -> list[str]:
+        """Normalized texts for SPAM messages only."""
+        return [preprocess(m.text) for m in self.spam]
+
+    @property
     def labels(self) -> list[str]:
         return [m.label.value for m in self.messages]
 
@@ -91,7 +108,7 @@ def load_dataset(path: Path) -> SMSDataset:
         raise FileNotFoundError(f"Dataset not found: {path}")
 
     logger.info("Loading dataset from %s", path)
-    df = pd.read_csv(path, sep="\t", header=None, names=["label", "text"])
+    df = pd.read_csv(path, sep="\t", header=None, names=["label", "text"], quoting=3)
 
     messages = [
         SMSMessage(label=row.label, text=row.text)
