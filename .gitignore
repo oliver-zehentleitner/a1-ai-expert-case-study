@@ -118,5 +118,6 @@ AGENTS.override.md
 .env
 outputs/*.joblib
 outputs/*.pkl
+outputs/*.png
 outputs/embeddings_cache/
 learning/

@@ -374,8 +374,8 @@ sms-analyze classification --model naive_bayes   # baseline comparison
 ```
 
 Generated plots and trained models are saved to `outputs/` by default.
-`.joblib` / `.pkl` model files and subdirectories inside `outputs/` are gitignored;
-top-level PNGs (from notebook and CLI runs) are committed.
+`outputs/` is local-only — PNGs, `.joblib`, `.pkl`, and the embeddings cache
+are all gitignored. The directory stays empty in the repo (`.gitkeep`).
 
 A committed reference snapshot is in [`solution/`](solution/) — a clean Part 1 run
 (Tasks 1–4, both LR and NB). Task 5 (clustering) requires an Ollama installation
