@@ -8,6 +8,7 @@ from sklearn.metrics import (
     classification_report,
     confusion_matrix,
     f1_score,
+    make_scorer,
     precision_score,
     recall_score,
     roc_auc_score,
@@ -63,7 +64,10 @@ def evaluate(
         HAM scores 86% without learning anything.  F1-SPAM and ROC-AUC are
         the primary metrics to watch.
     """
-    spam_idx = 1  # assumes classes sorted alphabetically: [ham, spam]
+    # Derive spam column index from the label set rather than hardcoding 1.
+    # sklearn sorts classes alphabetically → ['ham', 'spam'] → spam_idx=1,
+    # but querying the actual labels is robust if that ever changes.
+    spam_idx = sorted(set(y_true)).index("spam")
     auc = (
         roc_auc_score(
             [1 if y == "spam" else 0 for y in y_true],
@@ -109,11 +113,15 @@ def cross_validate(
     """
     cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
 
+    # F1-SPAM (pos_label='spam'), not F1-macro. At 86/14 imbalance the two differ
+    # significantly: F1-macro averages over both classes (giving HAM equal weight),
+    # while F1-SPAM tracks only the minority class we actually care about detecting.
+    f1_spam_scorer = make_scorer(f1_score, pos_label="spam")
     f1_scores = cross_val_score(
-        pipeline, texts, labels, cv=cv, scoring="f1_macro", n_jobs=-1
+        pipeline, texts, labels, cv=cv, scoring=f1_spam_scorer, n_jobs=-1
     )
     logger.info(
-        "%d-fold CV F1-macro: %.3f ± %.3f",
+        "%d-fold CV F1-SPAM: %.3f ± %.3f",
         n_splits, f1_scores.mean(), f1_scores.std(),
     )
     return {

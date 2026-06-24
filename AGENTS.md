@@ -79,8 +79,8 @@ These are **not** real HTML — they are ASCII text stored in a plain TSV file.
 The `&lt;URL&gt;` token was used by the dataset authors (or the copy-paste process)
 to replace **both** actual hyperlinks **and** social-media usernames/handles.
 The pattern `@ &lt;URL&gt;` in a message indicates a username mention, not a link.
-This is why preprocessing maps `@ &lt;URL&gt;` → `__USER__` (before the general URL
-pass) rather than `__URL__`.
+This is why preprocessing maps `@ &lt;URL&gt;` → `TOKEN_USER` (before the general URL
+pass) rather than `TOKEN_URL`.
 
 ### Real URLs in the data
 
@@ -112,21 +112,21 @@ classification. The two signals are complementary and should not be conflated.
 ## Preprocessing — `src/sms_analysis/data/preprocessing.py`
 
 All normalisation happens in `preprocess(text: str) -> str`.
-**Pattern application order matters** — `__USER__` must be matched before
-the general `__URL__` pass or username placeholders get misclassified as links.
+**Pattern application order matters** — `TOKEN_USER` must be matched before
+the general `TOKEN_URL` pass or username placeholders get misclassified as links.
 
 | Input pattern | Regex | Output |
 |--------------|-------|--------|
 | `Ü` / `ü` | `_U_UMLAUT` | `u` (shorthand for "you"; removes spurious HAM bias) |
-| `@ &lt;URL&gt;` | `_AT_USER_HTML` | `__USER__` |
-| `@handle` | `_AT_USER_RAW` | `__USER__` |
-| `&lt;URL&gt;` | `_HTML_URL` | `__URL__` |
-| `http://…`, `www.…` | `_REAL_URL` | `__URL__` |
-| `&lt;#&gt;`, `&lt;DECIMAL&gt;`, `&lt;NUMBER&gt;` | `_HTML_NUM` | `__NUM__` |
-| standalone digits (≥ 2) | `_STANDALONE_NR` | `__NUM__` |
-| `&lt;TIME&gt;` | `_HTML_TIME` | `__TIME__` |
-| `&lt;EMAIL&gt;` | `_HTML_EMAIL` | `__EMAIL__` |
-| `£`, `$`, `€`, `¥`, `₹`, `₽`, `₩`, `₿` | `_CURRENCY` | `__CURRENCY__` |
+| `@ &lt;URL&gt;` | `_AT_USER_HTML` | `TOKEN_USER` |
+| `@handle` | `_AT_USER_RAW` | `TOKEN_USER` |
+| `&lt;URL&gt;` | `_HTML_URL` | `TOKEN_URL` |
+| `http://…`, `www.…` | `_REAL_URL` | `TOKEN_URL` |
+| `&lt;#&gt;`, `&lt;DECIMAL&gt;`, `&lt;NUMBER&gt;` | `_HTML_NUM` | `TOKEN_NUM` |
+| standalone digits (≥ 2) | `_STANDALONE_NR` | `TOKEN_NUM` |
+| `&lt;TIME&gt;` | `_HTML_TIME` | `TOKEN_TIME` |
+| `&lt;EMAIL&gt;` | `_HTML_EMAIL` | `TOKEN_EMAIL` |
+| `£`, `$`, `€`, `¥`, `₹`, `₽`, `₩`, `₿` | `_CURRENCY` | `TOKEN_CURRENCY` |
 | `&amp;` | `_HTML_AMP` | `and` |
 | any remaining `&lt;…&gt;` | `_HTML_LEFTOVER` | *(removed + WARNING logged)* |
 

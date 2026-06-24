@@ -276,12 +276,12 @@
 
 <span class="sd">Tokens produced</span>
 <span class="sd">---------------</span>
-<span class="sd">``__USER__``     – ``@ &amp;lt;URL&amp;gt;`` (NUS) or ``@handle`` (typed) — a mention was present</span>
-<span class="sd">``__URL__``      – ``&amp;lt;URL&amp;gt;`` (NUS) or ``http://…`` / ``www.…`` (typed) — a URL was present</span>
-<span class="sd">``__NUM__``      – ``&amp;lt;#&amp;gt;`` / ``&amp;lt;DECIMAL&amp;gt;`` (NUS) or digit sequence (typed) — a number was present</span>
-<span class="sd">``__TIME__``     – ``&amp;lt;TIME&amp;gt;`` (NUS) — a time value was present</span>
-<span class="sd">``__EMAIL__``    – ``&amp;lt;EMAIL&amp;gt;`` (NUS) — an e-mail address was present</span>
-<span class="sd">``__CURRENCY__`` – currency symbol (£, $, €, …) typed by user; locale-normalised</span>
+<span class="sd">``TOKEN_USER``     – ``@ &amp;lt;URL&amp;gt;`` (NUS) or ``@handle`` (typed) — a mention was present</span>
+<span class="sd">``TOKEN_URL``      – ``&amp;lt;URL&amp;gt;`` (NUS) or ``http://…`` / ``www.…`` (typed) — a URL was present</span>
+<span class="sd">``TOKEN_NUM``      – ``&amp;lt;#&amp;gt;`` / ``&amp;lt;DECIMAL&amp;gt;`` (NUS) or digit sequence (typed) — a number was present</span>
+<span class="sd">``TOKEN_TIME``     – ``&amp;lt;TIME&amp;gt;`` (NUS) — a time value was present</span>
+<span class="sd">``TOKEN_EMAIL``    – ``&amp;lt;EMAIL&amp;gt;`` (NUS) — an e-mail address was present</span>
+<span class="sd">``TOKEN_CURRENCY`` – currency symbol (£, $, €, …) typed by user; locale-normalised</span>
 
 <span class="sd">Character normalisation</span>
 <span class="sd">-----------------------</span>
@@ -334,40 +334,40 @@
 <span class="sd">    Examples::</span>
 
 <span class="sd">        &gt;&gt;&gt; preprocess(&quot;follow me @ &amp;lt;URL&amp;gt; ok?&quot;)</span>
-<span class="sd">        &#39;follow me __USER__ ok?&#39;</span>
+<span class="sd">        &#39;follow me TOKEN_USER ok?&#39;</span>
 
 <span class="sd">        &gt;&gt;&gt; preprocess(&quot;Win &amp;lt;URL&amp;gt; now!&quot;)</span>
-<span class="sd">        &#39;Win __URL__ now!&#39;</span>
+<span class="sd">        &#39;Win TOKEN_URL now!&#39;</span>
 
 <span class="sd">        &gt;&gt;&gt; preprocess(&quot;I sent you &amp;lt;#&amp;gt; bucks&quot;)</span>
-<span class="sd">        &#39;I sent you __NUM__ bucks&#39;</span>
+<span class="sd">        &#39;I sent you TOKEN_NUM bucks&#39;</span>
 
 <span class="sd">        &gt;&gt;&gt; preprocess(&quot;Check http://win-prize.com today&quot;)</span>
-<span class="sd">        &#39;Check __URL__ today&#39;</span>
+<span class="sd">        &#39;Check TOKEN_URL today&#39;</span>
 
 <span class="sd">        &gt;&gt;&gt; preprocess(&quot;Good &amp;amp; bad&quot;)</span>
 <span class="sd">        &#39;Good  and  bad&#39;</span>
 
 <span class="sd">        &gt;&gt;&gt; preprocess(&quot;Win £500 cash now!&quot;)</span>
-<span class="sd">        &#39;Win __CURRENCY__ __NUM__ cash now!&#39;</span>
+<span class="sd">        &#39;Win TOKEN_CURRENCY TOKEN_NUM cash now!&#39;</span>
 
 <span class="sd">        &gt;&gt;&gt; preprocess(&quot;Claim your $1000 prize&quot;)</span>
-<span class="sd">        &#39;Claim your __CURRENCY__ __NUM__ prize&#39;</span>
+<span class="sd">        &#39;Claim your TOKEN_CURRENCY TOKEN_NUM prize&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">_U_UMLAUT</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>              <span class="c1"># Ü/ü → u: shorthand for &quot;you&quot;, removes spurious HAM bias</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">_AT_USER_HTML</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__USER__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>   <span class="c1"># @ &lt;URL&gt;: NUS mention placeholder → token (presence matters)</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">_AT_USER_RAW</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__USER__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>    <span class="c1"># @handle: typed mention → same token</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_URL</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__URL__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>        <span class="c1"># NUS URL placeholder → token (presence matters)</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_NUM</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__NUM__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>        <span class="c1"># NUS number placeholder → token (presence matters)</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_TIME</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__TIME__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>      <span class="c1"># NUS time placeholder → token</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_EMAIL</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__EMAIL__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>    <span class="c1"># NUS email placeholder → token</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_AMP</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot; and &quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>          <span class="c1"># &amp;amp; → and: restores real &amp; character, not a placeholder</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_AT_USER_HTML</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;TOKEN_USER&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>     <span class="c1"># @ &lt;URL&gt;: NUS mention placeholder → token (presence matters)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_AT_USER_RAW</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;TOKEN_USER&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>      <span class="c1"># @handle: typed mention → same token</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_URL</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;TOKEN_URL&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>          <span class="c1"># NUS URL placeholder → token (presence matters)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_NUM</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;TOKEN_NUM&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>          <span class="c1"># NUS number placeholder → token (presence matters)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_TIME</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;TOKEN_TIME&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>        <span class="c1"># NUS time placeholder → token</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_EMAIL</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;TOKEN_EMAIL&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>      <span class="c1"># NUS email placeholder → token</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_AMP</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot; and &quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>              <span class="c1"># &amp;amp; → and: restores real &amp; character, not a placeholder</span>
     <span class="k">for</span> <span class="n">unknown</span> <span class="ow">in</span> <span class="n">_HTML_LEFTOVER</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Unknown HTML-encoded token in preprocessing input: </span><span class="si">%r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">unknown</span><span class="p">)</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_LEFTOVER</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">_REAL_URL</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__URL__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">_CURRENCY</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__CURRENCY__ &quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>  <span class="c1"># before STANDALONE_NR so £500 → __CURRENCY__ __NUM__</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">_STANDALONE_NR</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;__NUM__&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_REAL_URL</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;TOKEN_URL&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_CURRENCY</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;TOKEN_CURRENCY &quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>    <span class="c1"># before STANDALONE_NR so £500 → TOKEN_CURRENCY TOKEN_NUM</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_STANDALONE_NR</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;TOKEN_NUM&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></div>
 
 </pre></div>

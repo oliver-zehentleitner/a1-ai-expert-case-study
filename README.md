@@ -6,11 +6,12 @@ Solution to the [A1 Telekom Austria AI Expert case study](./assignment/Fallbeisp
 **[Full documentation](docs/index.html)** — CLI reference, API autodoc, architecture overview.
 
 The SMS dataset is located at
-[`./assignment/3D8026C4.zip/SMSSpamCollection`](./assignment/3D8026C4.zip/SMSSpamCollection),
+[`./assignment/3D8026C4.zip/SMSSpamCollection`](./assignment/3D8026C4.zip/SMSSpamCollection)
+(note: `3D8026C4.zip` is the extracted assignment directory, not a ZIP archive),
 based on the *SMS Spam Collection v.1* by Tiago A. Almeida and José María Gómez Hidalgo
 (`http://www.dt.fee.unicamp.br/~tiago/smsspamcollection/` — canonical citation URL,
-no longer reachable; it was a personal academic page at UNICAMP that disappeared when
-the author left the institution — the dataset itself is included in the assignment ZIP).
+kept for attribution; the dataset is also available via the
+[UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/228/sms+spam+collection)).
 Used here for this case study only.
 
 ---
@@ -133,10 +134,10 @@ same way — they retain real phone numbers, prices, and URLs.
 
 **Why this matters for the model:** these tokens are not spam indicators.
 A real number in a spam message and an anonymised number in a HAM message both
-map to `__NUM__` after normalisation. The ML signal is not the token itself
+map to `TOKEN_NUM` after normalisation. The ML signal is not the token itself
 but the *density and combination* of such tokens — spam messages are number-heavy
 (multiple phone numbers, shortcodes, prices, dates), while HAM messages
-containing `__NUM__` typically have just one or two occurrences.
+containing `TOKEN_NUM` typically have just one or two occurrences.
 
 ### Real URLs also present
 
@@ -168,12 +169,12 @@ The full normalisation mapping:
 
 | Input pattern | Origin | Action |
 |--------------|--------|--------|
-| `@ &lt;URL&gt;`, `@handle` | NUS placeholder / typed | → `__USER__` |
-| `&lt;URL&gt;`, `http://…`, `www.…` | NUS placeholder / typed | → `__URL__` |
-| `&lt;#&gt;`, `&lt;DECIMAL&gt;`, standalone digits (≥ 2) | NUS placeholder / typed | → `__NUM__` |
-| `&lt;TIME&gt;` | NUS placeholder | → `__TIME__` |
-| `&lt;EMAIL&gt;` | NUS placeholder | → `__EMAIL__` |
-| `£`, `$`, `€`, `¥`, `₹`, `₽`, `₩`, `₿` | typed | → `__CURRENCY__` |
+| `@ &lt;URL&gt;`, `@handle` | NUS placeholder / typed | → `TOKEN_USER` |
+| `&lt;URL&gt;`, `http://…`, `www.…` | NUS placeholder / typed | → `TOKEN_URL` |
+| `&lt;#&gt;`, `&lt;DECIMAL&gt;`, standalone digits (≥ 2) | NUS placeholder / typed | → `TOKEN_NUM` |
+| `&lt;TIME&gt;` | NUS placeholder | → `TOKEN_TIME` |
+| `&lt;EMAIL&gt;` | NUS placeholder | → `TOKEN_EMAIL` |
+| `£`, `$`, `€`, `¥`, `₹`, `₽`, `₩`, `₿` | typed | → `TOKEN_CURRENCY` |
 | `&amp;` | HTML encoding of real `&` | → `and` |
 | `Ü` / `ü` | shorthand for "you" | → `u` (avoids spurious HAM bias) |
 | Other `&lt;…&gt;` | unknown | removed + WARNING logged |
@@ -246,7 +247,7 @@ In this dataset, `£` (British pound) appears almost exclusively in SPAM.
 Without normalisation, the model would learn "£ = spam signal" — which is true
 for UK data but useless (or misleading) for traffic where `€`, `$`, or `₹`
 are the local currency. The preprocessing step normalises all currency symbols
-to `__CURRENCY__`, so the model learns "a currency symbol before an amount =
+to `TOKEN_CURRENCY`, so the model learns "a currency symbol before an amount =
 spam signal" rather than anything tied to a specific currency. This is a
 deliberate decision to improve generalisability within the limits of the
 available data.
@@ -372,8 +373,14 @@ sms-analyze classification   # Task 4 – train, evaluate, save model
 sms-analyze classification --model naive_bayes   # baseline comparison
 ```
 
-Generated plots and models are saved to `outputs/` (gitignored — transient).
-A committed snapshot of a clean run is in `solution/`.
+Generated plots and trained models are saved to `outputs/` by default.
+`.joblib` / `.pkl` model files and subdirectories inside `outputs/` are gitignored;
+top-level PNGs (from notebook and CLI runs) are committed.
+
+A committed reference snapshot is in [`solution/`](solution/) — a clean Part 1 run
+(Tasks 1–4, both LR and NB). Task 5 (clustering) requires an Ollama installation
+and is not included; run `sms-analyze clustering` separately after completing the
+Ollama setup in `scripts/setup_ollama.sh`.
 
 **Or open the Jupyter notebooks:**
 ```bash
