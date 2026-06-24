@@ -18,11 +18,14 @@ $Root = Resolve-Path (Join-Path $PSScriptRoot '../../..')
 $Open = $Open -or ($SphinxArgs -contains '--open') -or ($SphinxArgs -contains '-o')
 $SphinxArgs = $SphinxArgs | Where-Object { $_ -notin '--open', '-o' }
 
-# Stage README and assignment/ into the Sphinx source dir so myst-parser
-# resolves relative links (./assignment/…) correctly during the build.
+# Stage README, assignment/ and notebooks/ into the Sphinx source dir so
+# myst-parser resolves relative links correctly during the build.
 Copy-Item "$Root\README.md" "$Root\dev\sphinx\config\README.md" -Force
 if (Test-Path "$Root\assignment") {
     Copy-Item "$Root\assignment" "$Root\dev\sphinx\config\assignment" -Recurse -Force
+}
+if (Test-Path "$Root\notebooks") {
+    Copy-Item "$Root\notebooks" "$Root\dev\sphinx\config\notebooks" -Recurse -Force
 }
 
 try {
@@ -31,15 +34,20 @@ try {
     # Clean up staged files — they are build-time only, not source-controlled.
     Remove-Item "$Root\dev\sphinx\config\README.md" -ErrorAction SilentlyContinue
     Remove-Item "$Root\dev\sphinx\config\assignment" -Recurse -ErrorAction SilentlyContinue
+    Remove-Item "$Root\dev\sphinx\config\notebooks" -Recurse -ErrorAction SilentlyContinue
 }
 
 # Required for GitHub Pages to serve Sphinx's _static/ directory correctly.
 New-Item "$Root\docs\.nojekyll" -ItemType File -Force | Out-Null
 
-# Copy assignment files into docs/ so links work when browsing docs/index.html.
+# Copy assignment and notebook files into docs/ so links work when browsing docs/index.html.
 if (Test-Path "$Root\assignment") {
     Remove-Item "$Root\docs\assignment" -Recurse -ErrorAction SilentlyContinue
     Copy-Item "$Root\assignment" "$Root\docs\assignment" -Recurse -Force
+}
+if (Test-Path "$Root\notebooks") {
+    Remove-Item "$Root\docs\notebooks" -Recurse -ErrorAction SilentlyContinue
+    Copy-Item "$Root\notebooks" "$Root\docs\notebooks" -Recurse -Force
 }
 
 Write-Host ""

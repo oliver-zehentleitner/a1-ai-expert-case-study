@@ -22,18 +22,18 @@ The case study covers two focus areas applied to an English SMS dataset
 
 **Part 1 – Classic ML & Data Science (fully local, no external services)**
 
-| # | Task |
-|---|------|
-| 1 | Word frequency analysis across all SMS |
-| 2 | HAM vs. SPAM: distinctive vocabulary per class |
-| 3 | Most frequent bigrams and trigrams |
-| 4 | SPAM/HAM classification model with evaluation |
+| # | Task | Notebook |
+|---|------|----------|
+| 1 | Word frequency analysis across all SMS | [01_word_frequency.ipynb](notebooks/01_word_frequency.ipynb) |
+| 2 | HAM vs. SPAM: distinctive vocabulary per class | [02_ham_vs_spam.ipynb](notebooks/02_ham_vs_spam.ipynb) |
+| 3 | Most frequent bigrams and trigrams | [03_ngrams.ipynb](notebooks/03_ngrams.ipynb) |
+| 4 | SPAM/HAM classification model with evaluation | [04_classification.ipynb](notebooks/04_classification.ipynb) |
 
 **Part 2 – GenAI & LLM**
 
-| # | Task |
-|---|------|
-| 5 | Semantic clustering of SMS using embedding vectors |
+| # | Task | Notebook |
+|---|------|----------|
+| 5 | Semantic clustering of SMS using embedding vectors | [05_semantic_clustering.ipynb](notebooks/05_semantic_clustering.ipynb) |
 
 ---
 
