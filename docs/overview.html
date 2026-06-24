@@ -743,6 +743,21 @@ Use <code class="docutils literal notranslate"><span class="pre">--yes</span></c
 </pre></div>
 </div>
 </section>
+<section id="troubleshooting">
+<h3>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">¶</a></h3>
+<p><strong><code class="docutils literal notranslate"><span class="pre">sms-analyze</span> <span class="pre">all</span></code> hangs or takes very long</strong></p>
+<p>On some Linux / macOS systems, OpenBLAS or OpenMP spawn more threads than the OS scheduler handles well inside a virtualenv, causing the process to stall. Fix:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">OPENBLAS_NUM_THREADS</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="nv">MKL_NUM_THREADS</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>sms-analyze<span class="w"> </span>all
+</pre></div>
+</div>
+<p><strong>Windows (PowerShell)</strong></p>
+<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="nv">$env:OPENBLAS_NUM_THREADS</span><span class="p">=</span><span class="s2">&quot;1&quot;</span>
+<span class="nv">$env:OMP_NUM_THREADS</span><span class="p">=</span><span class="s2">&quot;1&quot;</span>
+<span class="nv">$env:MKL_NUM_THREADS</span><span class="p">=</span><span class="s2">&quot;1&quot;</span>
+<span class="n">sms-analyze</span> <span class="n">all</span>
+</pre></div>
+</div>
+</section>
 <section id="documentation">
 <h3>Documentation<a class="headerlink" href="#documentation" title="Link to this heading">¶</a></h3>
 <p>Open the docs in your default browser:</p>
@@ -865,6 +880,7 @@ and prints the top model features.</p>
 <li><a class="reference internal" href="#part-1-classic-ml-fully-local-no-setup-beyond-pip-install">Part 1 — Classic ML (fully local, no setup beyond pip install)</a></li>
 <li><a class="reference internal" href="#part-2-semantic-clustering-task-5">Part 2 — Semantic Clustering (Task 5)</a></li>
 <li><a class="reference internal" href="#tests">Tests</a></li>
+<li><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
 <li><a class="reference internal" href="#documentation">Documentation</a></li>
 <li><a class="reference internal" href="#use-as-a-library">Use as a library</a></li>
 </ul>
