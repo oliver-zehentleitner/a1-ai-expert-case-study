@@ -46,6 +46,7 @@ def _build_pipeline(model_type: ModelType) -> Pipeline:
 
     if model_type == "logistic_regression":
         classifier: LogisticRegression | MultinomialNB = LogisticRegression(
+            solver="liblinear",  # fast and stable for sparse high-dimensional TF-IDF
             max_iter=1_000,
             C=1.0,
             random_state=42,
