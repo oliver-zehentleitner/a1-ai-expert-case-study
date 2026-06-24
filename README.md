@@ -213,33 +213,18 @@ directly affect what the trained model can and cannot do.
 
 **Geographic and linguistic bias**
 
-The corpus is a mix of UK and Singaporean English. The HAM messages from the
-NUS corpus reflect the vocabulary and writing style of Singaporean university
-students (e.g. "lor", "lah", "da" as discourse particles). The SPAM messages
-were collected from a UK forum and reflect UK premium-rate SMS fraud patterns
-("prize", "claim", "await collection", "150p per msg", "BT national rate").
+The corpus is UK/Singaporean English. HAM reflects Singaporean student
+vocabulary ("lor", "lah", "da"); SPAM reflects UK premium-rate fraud
+("prize", "claim", "150p per msg"). The model is a reasonable UK/Singapore
+spam detector — on Austrian, German, or other traffic it would encounter
+different patterns and performance would degrade.
 
-A model trained on this data is a reasonable UK/Singapore spam detector.
-Applied to Austrian, German, or Brazilian traffic, it would encounter different
-vocabulary, different fraud patterns, different SMS conventions — and its
-performance would degrade accordingly. The training data does not cover these
-cases, so the model cannot be expected to generalise to them.
+**Fit for A1's actual use case**
 
-**The A1-specific irony**
-
-This case study was issued by A1 Telekom Austria — an Austrian carrier whose
-customers communicate primarily in German (and to a significant degree in
-Turkish, Serbian, and other languages spoken in Austria). A1's real SMS traffic
-would arrive in German. The spam targeting Austrian users would be written in
-German. The fraud patterns — "Sie haben gewonnen", premium-rate numbers starting
-with 0900, Kleinanzeigen scams, Paketbenachrichtigungs-Phishing — are entirely
-absent from this dataset.
-
-In a production context the English training data would need to be replaced
-with labelled Austrian/German traffic. The approach taken here (TF-IDF +
-Logistic Regression + evaluation pipeline) generalises to any language —
-only the training corpus needs to change. Pointing this out explicitly is
-part of answering the case study responsibly.
+A1's customers communicate in German. Austrian spam runs in German —
+0900 numbers, Paketbenachrichtigungs-Phishing, Kleinanzeigen-Betrug.
+None of that is in this dataset. For production: same package, same
+architecture, different training corpus.
 
 **Currency symbols as a concrete example**
 
