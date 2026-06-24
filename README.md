@@ -248,9 +248,14 @@ Without normalisation, the model would learn "£ = spam signal" — which is tru
 for UK data but useless (or misleading) for traffic where `€`, `$`, or `₹`
 are the local currency. The preprocessing step normalises all currency symbols
 to `TOKEN_CURRENCY`, so the model learns "a currency symbol before an amount =
-spam signal" rather than anything tied to a specific currency. This is a
-deliberate decision to improve generalisability within the limits of the
-available data.
+spam signal" rather than anything tied to a specific currency.
+
+Extensions worth considering: ISO currency codes (`EUR`, `USD`, `GBP`, …) are
+not covered by symbol matching and would benefit from the same treatment.
+Cryptocurrency contexts could justify a dedicated `TOKEN_CRYPTO` token —
+crypto scams have a distinct signature (`BTC`, `ETH`, wallet addresses) that
+may be worth separating from fiat-currency spam. Both are deliberate design
+decisions, not oversights.
 
 **Spurious correlations and adversarial robustness — a concrete example**
 
