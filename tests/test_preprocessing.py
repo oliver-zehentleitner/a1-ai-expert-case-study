@@ -46,3 +46,34 @@ class TestPreprocess:
         # Applying preprocess twice should give the same result as once
         text = "Win &lt;URL&gt; and &lt;#&gt; prizes!"
         assert preprocess(preprocess(text)) == preprocess(text)
+
+    def test_empty_string(self):
+        assert preprocess("") == ""
+
+    def test_whitespace_only(self):
+        assert preprocess("   ") == ""
+
+    def test_umlaut_normalised(self):
+        assert preprocess("Ü coming?") == "u coming?"
+        assert preprocess("ü coming?") == "u coming?"
+
+    def test_currency_before_number(self):
+        result = preprocess("Win £500 now")
+        assert "__CURRENCY__" in result
+        assert "__NUM__" in result
+        assert "£" not in result
+        assert "500" not in result
+
+    def test_html_time_placeholder(self):
+        assert preprocess("Meet at &lt;TIME&gt;") == "Meet at __TIME__"
+
+    def test_html_email_placeholder(self):
+        assert preprocess("Reply to &lt;EMAIL&gt;") == "Reply to __EMAIL__"
+
+    def test_mention_html(self):
+        assert preprocess("follow @ &lt;URL&gt; ok") == "follow __USER__ ok"
+
+    def test_mention_raw(self):
+        result = preprocess("@johnsmith said hi")
+        assert "__USER__" in result
+        assert "@johnsmith" not in result
