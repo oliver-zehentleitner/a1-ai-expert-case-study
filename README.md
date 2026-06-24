@@ -372,8 +372,14 @@ sms-analyze classification   # Task 4 – train, evaluate, save model
 sms-analyze classification --model naive_bayes   # baseline comparison
 ```
 
-Generated plots and models are saved to `outputs/` (gitignored — transient).
-A committed snapshot of a clean run is in `solution/`.
+Generated plots and trained models are saved to `outputs/` by default.
+`.joblib` / `.pkl` model files and subdirectories inside `outputs/` are gitignored;
+top-level PNGs (from notebook and CLI runs) are committed.
+
+A committed reference snapshot is in [`solution/`](solution/) — a clean Part 1 run
+(Tasks 1–4, both LR and NB). Task 5 (clustering) requires an Ollama installation
+and is not included; run `sms-analyze clustering` separately after completing the
+Ollama setup in `scripts/setup_ollama.sh`.
 
 **Or open the Jupyter notebooks:**
 ```bash
