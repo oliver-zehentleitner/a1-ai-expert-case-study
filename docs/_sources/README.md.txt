@@ -421,16 +421,16 @@ sms-analyze docs
 To rebuild the docs from source (e.g. after code changes):
 
 ```bash
-pip install -e ".[docs]"   # first time only (Linux / macOS / Windows)
+pip install -e ".[docs]"   # first time only (all platforms)
 ```
 
+**Linux / macOS**
 ```bash
-# Linux / macOS
 bash dev/sphinx/scripts/build_docs.sh
 ```
 
+**Windows (PowerShell)**
 ```powershell
-# Windows (PowerShell)
 .\dev\sphinx\scripts\build_docs.ps1
 ```
 
