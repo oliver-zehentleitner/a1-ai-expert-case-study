@@ -407,11 +407,25 @@ bash dev/sphinx/scripts/build_docs.sh
 
 ### Use as a library
 
-```python
-from sms_analysis import load_dataset
-from sms_analysis.classification import SpamClassifier
+A runnable end-to-end example is in [`scripts/example.py`](scripts/example.py).
+It loads the dataset, trains the classifier, evaluates it, predicts new messages,
+and prints the top model features.
 
-dataset = load_dataset("assignment/3D8026C4.zip/SMSSpamCollection")
-clf = SpamClassifier("logistic_regression").fit(dataset.texts, dataset.labels)
-print(clf.predict(["WINNER! Claim your free prize now!"]))
+```python
+from pathlib import Path
+from sms_analysis import load_dataset
+from sms_analysis.classification import SpamClassifier, evaluate
+from sklearn.model_selection import train_test_split
+
+dataset = load_dataset(Path("assignment/3D8026C4.zip/SMSSpamCollection")).deduplicated
+X_train, X_test, y_train, y_test = train_test_split(
+    dataset.texts, dataset.labels, test_size=0.2, stratify=dataset.labels, random_state=42
+)
+clf = SpamClassifier("logistic_regression").fit(X_train, y_train)
+result = evaluate(y_test, clf.predict(X_test), clf.predict_proba(X_test))
+print(result.summary())
+# Accuracy=0.963 | F1-SPAM=0.840 | Precision=0.935 | Recall=0.763 | ROC-AUC=0.991
+
+predictions = clf.predict(["WINNER! Claim your free prize now!", "See you at 8?"])
+# ['spam' 'ham']
 ```

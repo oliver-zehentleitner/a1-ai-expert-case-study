@@ -1,0 +1,49 @@
+"""
+Library usage example — sms_analysis package.
+
+Run from the project root after `pip install -e .`:
+    python scripts/example.py
+"""
+
+from sklearn.model_selection import train_test_split
+
+from pathlib import Path
+
+from sms_analysis import load_dataset
+from sms_analysis.classification import SpamClassifier, evaluate
+
+# ── 1. Load and deduplicate ───────────────────────────────────────────────────
+dataset = load_dataset(Path("assignment/3D8026C4.zip/SMSSpamCollection")).deduplicated
+print(f"Dataset: {len(dataset)} unique messages ({len(dataset.spam)} spam / {len(dataset.ham)} ham)")
+
+# ── 2. Train / test split ─────────────────────────────────────────────────────
+X_train, X_test, y_train, y_test = train_test_split(
+    dataset.texts, dataset.labels, test_size=0.2, stratify=dataset.labels, random_state=42
+)
+
+# ── 3. Fit classifier ─────────────────────────────────────────────────────────
+clf = SpamClassifier("logistic_regression").fit(X_train, y_train)
+
+# ── 4. Evaluate ───────────────────────────────────────────────────────────────
+result = evaluate(y_test, clf.predict(X_test), clf.predict_proba(X_test))
+print(result.summary())
+
+# ── 5. Predict new messages ───────────────────────────────────────────────────
+samples = [
+    "WINNER! Claim your free prize now — call 08001234567!",
+    "Hey, are you coming to the party tonight?",
+    "FREE entry to win £1000 cash, text WIN to 80085",
+    "Can you pick up some milk on the way home?",
+]
+predictions = clf.predict(samples)
+probas = clf.predict_proba(samples)
+
+print("\nPredictions:")
+for text, label, proba in zip(samples, predictions, probas):
+    p_spam = proba[1]
+    print(f"  [{label.upper():4s}  p={p_spam:.2f}]  {text[:60]}")
+
+# ── 6. Top features (what drives the model) ───────────────────────────────────
+features = clf.top_features(n=10)
+print("\nTop SPAM indicators:", [w for w, _ in features["spam"]])
+print("Top HAM  indicators:", [w for w, _ in features["ham"]])
