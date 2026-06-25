@@ -1,7 +1,7 @@
 """
 Library usage example — sms_analysis package.
 
-Run from the project root after `pip install -e .`:
+Run from any directory after `pip install -e .`:
     python scripts/example.py
 """
 
@@ -13,7 +13,7 @@ from sms_analysis import load_dataset
 from sms_analysis.classification import SpamClassifier, evaluate
 
 # ── 1. Load and deduplicate ───────────────────────────────────────────────────
-dataset = load_dataset(Path("assignment/3D8026C4.zip/SMSSpamCollection")).deduplicated
+dataset = load_dataset(Path(__file__).parent.parent / "assignment/3D8026C4.zip/SMSSpamCollection").deduplicated
 print(f"Dataset: {len(dataset)} unique messages ({len(dataset.spam)} spam / {len(dataset.ham)} ham)")
 
 # ── 2. Train / test split ─────────────────────────────────────────────────────
