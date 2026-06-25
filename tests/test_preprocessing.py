@@ -33,10 +33,16 @@ class TestPreprocess:
         assert "TOKEN_NUM" in result
         assert "08001234" not in result
 
-    def test_single_digit_preserved(self):
-        # Single digits ("1 apple", "I am 1") are not replaced — not meaningful noise
-        result = preprocess("I have 1 cat")
-        assert "1" in result
+    def test_single_digit_replaced(self):
+        # Single standalone digits are numbers too — consistent with multi-digit normalisation
+        assert "TOKEN_NUM" in preprocess("I have 1 cat")
+        assert "TOKEN_NUM" in preprocess("c u 2 night")
+        assert "TOKEN_NUM" in preprocess("4 free tickets")
+
+    def test_digit_in_alphanumeric_preserved(self):
+        # \b prevents replacement inside alphanumeric tokens
+        assert "hasi69" in preprocess("hasi69 is my username")
+        assert "3a" in preprocess("flat 3a")
 
     def test_plain_text_unchanged(self):
         text = "Hey, are you coming to the party?"
