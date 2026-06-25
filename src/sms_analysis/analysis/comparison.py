@@ -61,13 +61,13 @@ def log_odds_ratio(
 
     df = pd.DataFrame(rows).sort_values("log_odds")
 
-    top_ham = df.head(top_n).copy()
+    top_ham = df.head(top_n).sort_values("log_odds", ascending=False).copy()
     top_ham["leaning"] = "ham"
 
     top_spam = df.tail(top_n).sort_values("log_odds", ascending=False).copy()
     top_spam["leaning"] = "spam"
 
-    result = pd.concat([top_ham, top_spam], ignore_index=True)
+    result = pd.concat([top_spam, top_ham], ignore_index=True)
     logger.info(
         "Log-odds computed over vocab of %d words (%d HAM / %d SPAM texts)",
         v, len(ham_texts), len(spam_texts),
