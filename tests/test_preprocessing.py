@@ -72,7 +72,7 @@ class TestPreprocess:
 
     def test_currency_iso_code(self):
         # ISO codes carry the same signal as symbols — locale-independent
-        for code in ("EUR", "USD", "GBP", "eur", "usd"):
+        for code in ("EUR", "USD", "GBP", "CHF", "eur", "usd"):
             assert "TOKEN_CURRENCY" in preprocess(f"Send 100 {code} now")
         # embedded in longer word — must NOT match
         assert "TOKEN_CURRENCY" not in preprocess("Call EUROPE hotline")
