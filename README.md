@@ -363,14 +363,20 @@ sms-analyze classification   # Task 4 – train, evaluate, save model
 sms-analyze classification --model naive_bayes   # baseline comparison
 ```
 
-Generated plots and trained models are saved to `outputs/` by default.
+**Inspect the preprocessing pipeline:**
+```bash
+sms-analyze normalized
+```
+Writes `outputs/normalized_texts.tsv` — a tab-separated file with three columns
+(`label`, `original`, `normalized`) covering all 5 574 messages. Open it in
+Excel / LibreOffice Calc or load it with `pd.read_csv(..., sep="\t")` to verify
+what the normalisation pipeline does to individual messages (e.g. how `£100,000`,
+`07-815-296`, or NUS placeholders like `&lt;#&gt;` are handled).
+`sms-analyze all` includes this step automatically.
+
+Generated plots, trained models, and the TSV are saved to `outputs/` by default.
 `outputs/` is intentionally empty — it is the runtime output directory and
 its contents are not included in this deliverable.
-
-A reference snapshot is in [`solution/`](solution/) — a clean Part 1 run
-(Tasks 1–4, both LR and NB). Task 5 (clustering) requires an Ollama installation
-and is not included; run `sms-analyze clustering` separately after completing the
-Ollama setup in `scripts/setup_ollama.sh`.
 
 **Or open the Jupyter notebooks:**
 ```bash
