@@ -14,6 +14,7 @@ ollama>=0.3
 jupyter>=1.0
 notebook>=7.0
 ipykernel>=6.0
+ipython
 
 # Development — mirrors pyproject.toml [project.optional-dependencies.dev]
 # Install with: pip install -e ".[dev]"
@@ -27,6 +28,3 @@ sphinx>=7.3
 furo>=2024.1
 sphinx-autodoc-typehints>=2.2
 myst-parser>=3.0
-
-# Just for Jupyter Notebook
-ipython
