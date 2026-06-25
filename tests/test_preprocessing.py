@@ -71,12 +71,24 @@ class TestPreprocess:
         assert "500" not in result
 
     def test_currency_iso_code(self):
-        # ISO codes carry the same signal as symbols — locale-independent
         for code in ("EUR", "USD", "GBP", "CHF", "eur", "usd"):
             assert "TOKEN_CURRENCY" in preprocess(f"Send 100 {code} now")
-        # embedded in longer word — must NOT match
         assert "TOKEN_CURRENCY" not in preprocess("Call EUROPE hotline")
         assert "TOKEN_CURRENCY" not in preprocess("GBPUSD pair")
+
+    def test_currency_word(self):
+        assert "TOKEN_CURRENCY" in preprocess("win 1000 pounds now")
+        assert "TOKEN_CURRENCY" in preprocess("costs 50 dollars")
+        assert "TOKEN_CURRENCY" in preprocess("pay 5 euros")
+
+    def test_formatted_number_single_token(self):
+        assert preprocess("Win £100,000 prize") == "Win TOKEN_CURRENCY TOKEN_NUM prize"
+        assert preprocess("costs 1.50 per msg") == "costs TOKEN_NUM per msg"
+
+    def test_sep_number_single_token(self):
+        assert preprocess("awarded on 02/09/03") == "awarded on TOKEN_NUM"
+        assert preprocess("call 07-815-296") == "call TOKEN_NUM"
+
 
     def test_html_time_placeholder(self):
         assert preprocess("Meet at &lt;TIME&gt;") == "Meet at TOKEN_TIME"
