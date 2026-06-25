@@ -111,6 +111,32 @@ Deshalb normalisieren wir alle Währungssymbole (`£`, `$`, `€`, `¥`, `₹`, 
 
 **Slash/Dash-Sequenzen:** Datumsangaben wie `02/09/03` und Telefonnummern wie `07-815-296` werden von `_STANDALONE_NR` in einzelne Gruppen geteilt. Nach Punctuation-Stripping im Tokenizer (`,` und `/` werden entfernt) entstehen Artefakte wie `token_numtoken_numtoken_num` oder noch schlimmer `943` (aus `9/4/3` ohne Normalisierung). Fix: `_SEP_NR` normalisiert die gesamte Sequenz zu einem einzelnen `TOKEN_NUM` bevor der Tokenizer greift.
 
+### Normalisierung inspizieren: normalized_texts.tsv
+
+Die Normalisierungspipeline lässt sich direkt inspizieren:
+
+```bash
+sms-analyze normalized   # oder: sms-analyze all
+```
+
+Das schreibt `outputs/normalized_texts.tsv` — eine **Tab-Separated Values**-Datei mit drei Spalten:
+
+| label | original | normalized |
+|-------|----------|------------|
+| ham   | "I'll be there at 8" | "i'll be there at TOKEN_NUM" |
+| spam  | "WIN £1000 cash — call 08001234567!" | "WIN TOKEN_CURRENCY TOKEN_NUM cash call TOKEN_NUM" |
+
+**Warum TSV und nicht CSV?** SMS-Texte enthalten selbst häufig Kommas und Anführungszeichen. Ein kommagetrennte Datei würde durch Standard-CSV-Parser falsch gesplittet. Tabs kommen in SMS-Texten praktisch nie vor — daher ist Tab als Trennzeichen sicher.
+
+Die Datei öffnet sich in Excel, LibreOffice Calc oder direkt in Python:
+
+```python
+import pandas as pd
+df = pd.read_csv("outputs/normalized_texts.tsv", sep="\t")
+```
+
+Damit kann man konkret nachvollziehen was die Pipeline aus einzelnen Nachrichten macht — vor allem bei Grenzfällen wie `£100,000`, `07-815-296` oder `&lt;#&gt;` Platzhaltern.
+
 ### Zeitlicher Bias
 
 Der Datensatz stammt aus ~2011. Spam-Muster ändern sich. Aktuelle Phishing-SMS sehen anders aus als Premium-Rate-SMS von vor 15 Jahren. Das Modell würde auf heutigem Spam-Traffic in der Praxis regelmäßig neu trainiert werden müssen.
