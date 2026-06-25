@@ -31,7 +31,7 @@ def plot_ham_spam_comparison(df: pd.DataFrame) -> plt.Figure:
     HAM-leaning words extend left (negative log-odds),
     SPAM-leaning words extend right (positive log-odds).
     """
-    fig, ax = plt.subplots(figsize=_FIG_SIZE)
+    fig, ax = plt.subplots(figsize=(12, max(6, len(df) * 0.35)))
     colors = df["leaning"].map({"ham": "steelblue", "spam": "tomato"})
     ax.barh(df["word"], df["log_odds"], color=colors)
     ax.axvline(0, color="black", linewidth=0.8)
