@@ -82,7 +82,7 @@ _HTML_AMP      = re.compile(r'&amp;',                         re.IGNORECASE)
 _HTML_LEFTOVER = re.compile(r'(&lt;.*?&gt;)',                  re.IGNORECASE)
 _REAL_URL      = re.compile(r'https?://\S+|www\.\S+',         re.IGNORECASE)
 _CURRENCY      = re.compile(r'[£$€¥₹₽₩₿]')
-_STANDALONE_NR = re.compile(r'\b\d{2,}\b')
+_STANDALONE_NR = re.compile(r'\b\d+\b')  # \b prevents matching digits inside alphanumeric tokens (e.g. "hasi69")
 _U_UMLAUT      = re.compile(r'Ü', re.IGNORECASE)
 
 
@@ -121,6 +121,12 @@ def preprocess(text: str) -> str:
 
         >>> preprocess("Claim your $1000 prize")
         'Claim your TOKEN_CURRENCY TOKEN_NUM prize'
+
+        >>> preprocess("c u 2 night 4 free")
+        'c u TOKEN_NUM night TOKEN_NUM free'
+
+        >>> preprocess("hasi69 is my username")
+        'hasi69 is my username'
     """
     text = _U_UMLAUT.sub("u", text)              # Ü/ü → u: shorthand for "you", removes spurious HAM bias
     text = _AT_USER_HTML.sub("TOKEN_USER", text)     # @ <URL>: NUS mention placeholder → token (presence matters)
