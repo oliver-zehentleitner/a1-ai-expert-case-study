@@ -82,6 +82,11 @@ _HTML_AMP      = re.compile(r'&amp;',                         re.IGNORECASE)
 _HTML_LEFTOVER = re.compile(r'(&lt;.*?&gt;)',                  re.IGNORECASE)
 _REAL_URL      = re.compile(r'https?://\S+|www\.\S+',         re.IGNORECASE)
 _CURRENCY      = re.compile(r'[£$€¥₹₽₩₿]')
+_CURRENCY_CODE = re.compile(                        # ISO 4217 codes — same signal as a currency symbol
+    r'\b(USD|EUR|GBP|CHF|JPY|AUD|CAD|CNY|INR|'
+    r'MXN|BRL|KRW|SGD|HKD|NOK|SEK|DKK|NZD|ZAR)\b',
+    re.IGNORECASE,
+)
 _STANDALONE_NR = re.compile(r'\b\d+\b')  # \b prevents matching digits inside alphanumeric tokens (e.g. "hasi69")
 _U_UMLAUT      = re.compile(r'Ü', re.IGNORECASE)
 
@@ -127,6 +132,12 @@ def preprocess(text: str) -> str:
 
         >>> preprocess("hasi69 is my username")
         'hasi69 is my username'
+
+        >>> preprocess("Win 1000 EUR now!")
+        'Win TOKEN_NUM TOKEN_CURRENCY now!'
+
+        >>> preprocess("Send 500 usd to win")
+        'Send TOKEN_NUM TOKEN_CURRENCY to win'
     """
     text = _U_UMLAUT.sub("u", text)              # Ü/ü → u: shorthand for "you", removes spurious HAM bias
     text = _AT_USER_HTML.sub("TOKEN_USER", text)     # @ <URL>: NUS mention placeholder → token (presence matters)
@@ -141,5 +152,6 @@ def preprocess(text: str) -> str:
     text = _HTML_LEFTOVER.sub("", text)
     text = _REAL_URL.sub("TOKEN_URL", text)
     text = _CURRENCY.sub("TOKEN_CURRENCY ", text)    # before STANDALONE_NR so £500 → TOKEN_CURRENCY TOKEN_NUM
+    text = _CURRENCY_CODE.sub("TOKEN_CURRENCY", text)  # ISO codes same signal: "1000 EUR" → "TOKEN_NUM TOKEN_CURRENCY"
     text = _STANDALONE_NR.sub("TOKEN_NUM", text)
     return text.strip()
