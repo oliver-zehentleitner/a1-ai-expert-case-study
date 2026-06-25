@@ -120,3 +120,5 @@ outputs/*.joblib
 outputs/*.pkl
 outputs/*.png
 outputs/embeddings_cache/
+notebooks/outputs/
+learning/
