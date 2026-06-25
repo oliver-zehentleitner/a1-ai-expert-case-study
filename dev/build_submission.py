@@ -20,6 +20,7 @@ SKIP_DIR_COMPONENTS = {
     ".git",
     "_build",
     "dev",
+    ".idea",
     "learning",
     "__pycache__",
     ".pytest_cache",
@@ -34,7 +35,6 @@ SKIP_SUBTREES = [
     Path("docs/_modules"),
     Path("docs/_downloads"),
     Path("docs/.doctrees"),
-    Path("notebooks/outputs"),
 ]
 
 # Filenames (basename only) to skip wherever they appear
