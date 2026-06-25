@@ -29,13 +29,18 @@ SKIP_DIR_COMPONENTS = {
     "dist",
 }
 
-# Subtrees relative to ROOT that are skipped (Sphinx build artefacts etc.)
+# Subtrees relative to ROOT whose files are skipped entirely
 SKIP_SUBTREES = [
     Path("docs/_sources"),
     Path("docs/_modules"),
     Path("docs/_downloads"),
     Path("docs/.doctrees"),
+    Path("outputs"),         # included as empty dir — evaluators run sms-analyze themselves
+    Path("notebooks/outputs"),
 ]
+
+# Empty directories to add explicitly (ZIP doesn't store dirs without files)
+EMPTY_DIRS = ["outputs/"]
 
 # Filenames (basename only) to skip wherever they appear
 SKIP_NAMES = {
@@ -73,6 +78,8 @@ def main() -> None:
     included: list[Path] = []
 
     with zipfile.ZipFile(zippath, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for empty_dir in EMPTY_DIRS:
+            zf.writestr(zipfile.ZipInfo(empty_dir), "")
         for path in sorted(ROOT.rglob("*")):
             if not path.is_file():
                 continue
