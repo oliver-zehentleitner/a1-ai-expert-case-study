@@ -20,7 +20,7 @@ HAM_TEXTS = [
     "Let me know when you arrive.",
     "Can you pick up milk on the way home?",
     "I'll be there in 10 minutes.",
-    "See you at the cinema at 8.",
+    "See you at the cinema tonight.",
     "Thanks for the birthday wishes!",
     "Call me when you're free.",
     "Good morning, how are you?",
