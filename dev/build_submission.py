@@ -19,6 +19,7 @@ DIST = ROOT / "dist"
 SKIP_DIR_COMPONENTS = {
     ".git",
     "_build",
+    ".ipynb_checkpoints",
     "dev",
     ".idea",
     "learning",

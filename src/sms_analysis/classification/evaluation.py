@@ -109,7 +109,7 @@ def cross_validate(
         n_splits: Number of CV folds (default 5).
 
     Returns:
-        Dict with ``f1_mean``, ``f1_std``, ``roc_auc_mean``, ``roc_auc_std``.
+        Dict with ``f1_mean`` and ``f1_std``.
     """
     cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
 

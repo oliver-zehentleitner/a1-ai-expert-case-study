@@ -337,6 +337,7 @@ where a more robust estimate across multiple folds is needed.
 ```bash
 python -m venv .venv
 source .venv/bin/activate
+pip install -r requirements.txt
 pip install -e .
 ```
 
@@ -344,6 +345,7 @@ pip install -e .
 ```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
+pip install -r requirements.txt
 pip install -e .
 ```
 
@@ -439,21 +441,8 @@ Open the docs in your default browser:
 sms-analyze docs
 ```
 
-To rebuild the docs from source (e.g. after code changes):
-
-```bash
-pip install -e ".[docs]"   # first time only (all platforms)
-```
-
-**Linux / macOS**
-```bash
-bash dev/sphinx/scripts/build_docs.sh
-```
-
-**Windows (PowerShell)**
-```powershell
-.\dev\sphinx\scripts\build_docs.ps1
-```
+The rendered documentation is included under `docs/`. Rebuilding from source
+is not part of this submission package.
 
 ### Use as a library
 
