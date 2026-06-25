@@ -2,6 +2,7 @@
 
 import argparse
 
+from . import __version__
 from .config import Settings, configure_logging
 
 
@@ -177,7 +178,12 @@ def run_docs() -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="sms-analyze",
-        description="SMS Spam/Ham Analysis – A1 AI Expert Case Study",
+        description=f"SMS Spam/Ham Analysis – A1 AI Expert Case Study (v{__version__})",
+    )
+    parser.add_argument(
+        "--version", "-V",
+        action="version",
+        version=f"%(prog)s {__version__}",
     )
     parser.add_argument(
         "task",
