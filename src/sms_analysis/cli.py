@@ -160,6 +160,24 @@ def _print_cluster_summary(
     print(f"{'─' * 70}")
 
 
+def run_export_normalized(settings: Settings) -> None:
+    import csv
+
+    from .data.loader import load_dataset
+    from .data.preprocessing import preprocess
+
+    dataset = load_dataset(settings.data_path)
+    out_path = settings.outputs_dir / "normalized_texts.tsv"
+
+    with open(out_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, delimiter="\t")
+        writer.writerow(["label", "original", "normalized"])
+        for msg in dataset.messages:
+            writer.writerow([msg.label.value, msg.text, preprocess(msg.text)])
+
+    print(f"Normalized texts written to {out_path}  ({len(dataset)} rows)")
+
+
 def run_docs() -> None:
     import webbrowser
     from pathlib import Path
@@ -187,7 +205,7 @@ def main() -> None:
     )
     parser.add_argument(
         "task",
-        choices=["frequency", "comparison", "ngrams", "classification", "clustering", "docs", "all"],
+        choices=["frequency", "comparison", "ngrams", "classification", "clustering", "docs", "normalized", "all"],
         help="Which analysis to run (use 'docs' to open the documentation)",
     )
 
@@ -246,11 +264,12 @@ def main() -> None:
         "ngrams":         lambda: run_ngrams(settings),
         "classification": lambda: run_classification(settings, args.model),
         "clustering":     lambda: run_clustering(settings, args),
+        "normalized":     lambda: run_export_normalized(settings),
     }
 
-    # "all" runs Part 1 (classic ML) only — clustering requires an embedding
-    # provider and is always run explicitly via "sms-analyze clustering".
-    _part1 = ["frequency", "comparison", "ngrams", "classification"]
+    # "all" runs Part 1 (classic ML) + normalized export.
+    # Clustering requires an embedding provider and is always run explicitly.
+    _part1 = ["normalized", "frequency", "comparison", "ngrams", "classification"]
 
     if args.task == "all":
         for name in _part1:
