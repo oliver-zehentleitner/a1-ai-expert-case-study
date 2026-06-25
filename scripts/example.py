@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 Library usage example — sms_analysis package.
 
@@ -30,10 +32,13 @@ print(result.summary())
 
 # ── 5. Predict new messages ───────────────────────────────────────────────────
 samples = [
-    "WINNER! Claim your free prize now — call 08001234567!",
     "Hey, are you coming to the party tonight?",
-    "FREE entry to win £1000 cash, text WIN to 80085",
+    "WINNER! Claim your free prize now — call 08001234567!",
     "Can you pick up some milk on the way home?",
+    "FREE entry to win £1000 cash, text WIN to 80085",
+    "FREE entry to win €1000 cash, text WIN to 09001234",
+    "FREE entry to win 1000 £ cash, text WIN to 80085",
+    "FREE entry to win 1000 EUR cash, text WIN to 09001234",
 ]
 predictions = clf.predict(samples)
 probas = clf.predict_proba(samples)
