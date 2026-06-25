@@ -51,8 +51,7 @@ Tokens produced
 ``TOKEN_NUM``      – ``&lt;#&gt;`` / ``&lt;DECIMAL&gt;`` (NUS) or digit sequence (typed) — a number was present
 ``TOKEN_TIME``     – ``&lt;TIME&gt;`` (NUS) — a time value was present
 ``TOKEN_EMAIL``    – ``&lt;EMAIL&gt;`` (NUS) — an e-mail address was present
-``TOKEN_CURRENCY`` – currency symbol (£, $, €, …), ISO code (USD, EUR, GBP, …), or written
-                    word (dollar, euro, pounds, …) — locale-normalised
+``TOKEN_CURRENCY`` – currency symbol (£, $, €, …), ISO code (USD, EUR, GBP, …) or written word (dollar, euro, pounds, …) — locale-normalised
 
 Character normalisation
 -----------------------
