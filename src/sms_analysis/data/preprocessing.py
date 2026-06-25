@@ -51,7 +51,8 @@ Tokens produced
 ``TOKEN_NUM``      – ``&lt;#&gt;`` / ``&lt;DECIMAL&gt;`` (NUS) or digit sequence (typed) — a number was present
 ``TOKEN_TIME``     – ``&lt;TIME&gt;`` (NUS) — a time value was present
 ``TOKEN_EMAIL``    – ``&lt;EMAIL&gt;`` (NUS) — an e-mail address was present
-``TOKEN_CURRENCY`` – currency symbol (£, $, €, …) typed by user; locale-normalised
+``TOKEN_CURRENCY`` – currency symbol (£, $, €, …), ISO code (USD, EUR, GBP, …), or written
+                    word (dollar, euro, pounds, …) — locale-normalised
 
 Character normalisation
 -----------------------
@@ -87,6 +88,16 @@ _CURRENCY_CODE = re.compile(                        # ISO 4217 codes — same si
     r'MXN|BRL|KRW|SGD|HKD|NOK|SEK|DKK|NZD|ZAR)\b',
     re.IGNORECASE,
 )
+_CURRENCY_WORD = re.compile(                        # written-out currency words
+    r'\b(dollars?|euros?|pounds?|pence|penny|cents?|quid)\b',
+    re.IGNORECASE,
+)
+# Formatted numbers must be matched BEFORE _STANDALONE_NR to avoid splitting them
+# into separate digit groups that the tokeniser would later concatenate into noise.
+# e.g. "1,000" → \d+,\d+ → TOKEN_NUM (not TOKEN_NUM,TOKEN_NUM → "token_numtoken_num")
+# e.g. "9/4/3"  → would otherwise become "943" after punctuation stripping
+_FORMATTED_NR  = re.compile(r'\b\d+(?:[.,]\d+)+\b')   # comma/dot separated: 1,000 / 1.50 / 1,234.56
+_SEP_NR        = re.compile(r'\b\d+(?:[/\-]\d+)+\b')  # slash/dash sequences: 9/4/3, 02-09-03
 _STANDALONE_NR = re.compile(r'\b\d+\b')  # \b prevents matching digits inside alphanumeric tokens (e.g. "hasi69")
 _U_UMLAUT      = re.compile(r'Ü', re.IGNORECASE)
 
@@ -138,6 +149,18 @@ def preprocess(text: str) -> str:
 
         >>> preprocess("Send 500 usd to win")
         'Send TOKEN_NUM TOKEN_CURRENCY to win'
+
+        >>> preprocess("Win £100,000 prize now!")
+        'Win TOKEN_CURRENCY TOKEN_NUM prize now!'
+
+        >>> preprocess("awarded on 02/09/03")
+        'awarded on TOKEN_NUM'
+
+        >>> preprocess("costs 1.50 per week")
+        'costs TOKEN_NUM per week'
+
+        >>> preprocess("win 1000 euros now")
+        'win TOKEN_NUM TOKEN_CURRENCY now'
     """
     text = _U_UMLAUT.sub("u", text)              # Ü/ü → u: shorthand for "you", removes spurious HAM bias
     text = _AT_USER_HTML.sub("TOKEN_USER", text)     # @ <URL>: NUS mention placeholder → token (presence matters)
@@ -152,6 +175,9 @@ def preprocess(text: str) -> str:
     text = _HTML_LEFTOVER.sub("", text)
     text = _REAL_URL.sub("TOKEN_URL", text)
     text = _CURRENCY.sub("TOKEN_CURRENCY ", text)    # before STANDALONE_NR so £500 → TOKEN_CURRENCY TOKEN_NUM
-    text = _CURRENCY_CODE.sub("TOKEN_CURRENCY", text)  # ISO codes same signal: "1000 EUR" → "TOKEN_NUM TOKEN_CURRENCY"
+    text = _CURRENCY_CODE.sub("TOKEN_CURRENCY", text)
+    text = _CURRENCY_WORD.sub("TOKEN_CURRENCY", text)
+    text = _FORMATTED_NR.sub("TOKEN_NUM", text)      # before STANDALONE_NR: 1,000 / 1.50 → single TOKEN_NUM
+    text = _SEP_NR.sub("TOKEN_NUM", text)            # before STANDALONE_NR: 9/4/3 → TOKEN_NUM (not "943")
     text = _STANDALONE_NR.sub("TOKEN_NUM", text)
     return text.strip()

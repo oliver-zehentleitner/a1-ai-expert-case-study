@@ -105,7 +105,11 @@ Ein Modell das auf diesem Datensatz trainiert wird, ist ein guter Detektor für 
 
 In diesem Datensatz erscheint `£` fast ausschließlich in SPAM. Ohne Normalisierung würde das Modell "£ = Spam-Signal" lernen — was für UK-Daten stimmt, aber für Euro- oder Dollar-Traffic wertlos wäre.
 
-Deshalb normalisieren wir alle Währungssymbole (`£`, `$`, `€`, `¥`, `₹`, `₽`, `₩`, `₿`) zu `TOKEN_CURRENCY`. Das Modell lernt "Währungssymbol vor Betrag = Spam-Signal" — kulturunabhängig.
+Deshalb normalisieren wir alle Währungssymbole (`£`, `$`, `€`, `¥`, `₹`, `₽`, `₩`, `₿`), ISO-Codes (`EUR`, `USD`, `GBP`, …) und ausgeschriebene Währungswörter (`pounds`, `dollars`, `euros`, …) zu `TOKEN_CURRENCY`. Das Modell lernt "Währungsreferenz vor/nach Betrag = Spam-Signal" — locale-unabhängig. Ohne diese Normalisierung würde `"Win £1000 now!"` korrekt als Spam erkannt, `"Win 1000 EUR now!"` aber nicht.
+
+**Zahlen mit Trennzeichen:** Beträge wie `£100,000` oder `1.50 per msg` enthalten Komma oder Punkt als Tausender- oder Dezimaltrennzeichen. Ohne explizite Normalisierung würde `_STANDALONE_NR` die Gruppen einzeln ersetzen und `tokenize()` das Trennzeichen danach löschen — aus `1,000` wird `token_numtoken_num` (kontextloser Rauschwert im Training). Fix: `_FORMATTED_NR` matcht die gesamte formatierte Zahl vor `_STANDALONE_NR` und ersetzt sie durch ein einzelnes `TOKEN_NUM`.
+
+**Slash/Dash-Sequenzen:** Datumsangaben wie `02/09/03` und Telefonnummern wie `07-815-296` werden von `_STANDALONE_NR` in einzelne Gruppen geteilt. Nach Punctuation-Stripping im Tokenizer (`,` und `/` werden entfernt) entstehen Artefakte wie `token_numtoken_numtoken_num` oder noch schlimmer `943` (aus `9/4/3` ohne Normalisierung). Fix: `_SEP_NR` normalisiert die gesamte Sequenz zu einem einzelnen `TOKEN_NUM` bevor der Tokenizer greift.
 
 ### Zeitlicher Bias
 
