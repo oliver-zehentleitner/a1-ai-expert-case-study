@@ -70,6 +70,14 @@ class TestPreprocess:
         assert "£" not in result
         assert "500" not in result
 
+    def test_currency_iso_code(self):
+        # ISO codes carry the same signal as symbols — locale-independent
+        for code in ("EUR", "USD", "GBP", "CHF", "eur", "usd"):
+            assert "TOKEN_CURRENCY" in preprocess(f"Send 100 {code} now")
+        # embedded in longer word — must NOT match
+        assert "TOKEN_CURRENCY" not in preprocess("Call EUROPE hotline")
+        assert "TOKEN_CURRENCY" not in preprocess("GBPUSD pair")
+
     def test_html_time_placeholder(self):
         assert preprocess("Meet at &lt;TIME&gt;") == "Meet at TOKEN_TIME"
 
