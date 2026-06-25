@@ -121,5 +121,4 @@ outputs/*.pkl
 outputs/*.png
 outputs/*.tsv
 outputs/embeddings_cache/
-notebooks/outputs/
 learning/
