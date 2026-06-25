@@ -281,7 +281,8 @@
 <span class="sd">``TOKEN_NUM``      – ``&amp;lt;#&amp;gt;`` / ``&amp;lt;DECIMAL&amp;gt;`` (NUS) or digit sequence (typed) — a number was present</span>
 <span class="sd">``TOKEN_TIME``     – ``&amp;lt;TIME&amp;gt;`` (NUS) — a time value was present</span>
 <span class="sd">``TOKEN_EMAIL``    – ``&amp;lt;EMAIL&amp;gt;`` (NUS) — an e-mail address was present</span>
-<span class="sd">``TOKEN_CURRENCY`` – currency symbol (£, $, €, …) typed by user; locale-normalised</span>
+<span class="sd">``TOKEN_CURRENCY`` – currency symbol (£, $, €, …), ISO code (USD, EUR, GBP, …), or written</span>
+<span class="sd">                    word (dollar, euro, pounds, …) — locale-normalised</span>
 
 <span class="sd">Character normalisation</span>
 <span class="sd">-----------------------</span>
@@ -312,7 +313,22 @@
 <span class="n">_HTML_LEFTOVER</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(&amp;lt;.*?&amp;gt;)&#39;</span><span class="p">,</span>                  <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
 <span class="n">_REAL_URL</span>      <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;https?://\S+|www\.\S+&#39;</span><span class="p">,</span>         <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
 <span class="n">_CURRENCY</span>      <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[£$€¥₹₽₩₿]&#39;</span><span class="p">)</span>
-<span class="n">_STANDALONE_NR</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\b\d{2,}\b&#39;</span><span class="p">)</span>
+<span class="n">_CURRENCY_CODE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>                        <span class="c1"># ISO 4217 codes — same signal as a currency symbol</span>
+    <span class="sa">r</span><span class="s1">&#39;\b(USD|EUR|GBP|CHF|JPY|AUD|CAD|CNY|INR|&#39;</span>
+    <span class="sa">r</span><span class="s1">&#39;MXN|BRL|KRW|SGD|HKD|NOK|SEK|DKK|NZD|ZAR)\b&#39;</span><span class="p">,</span>
+    <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">_CURRENCY_WORD</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>                        <span class="c1"># written-out currency words</span>
+    <span class="sa">r</span><span class="s1">&#39;\b(dollars?|euros?|pounds?|pence|penny|cents?|quid)\b&#39;</span><span class="p">,</span>
+    <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="c1"># Formatted numbers must be matched BEFORE _STANDALONE_NR to avoid splitting them</span>
+<span class="c1"># into separate digit groups that the tokeniser would later concatenate into noise.</span>
+<span class="c1"># e.g. &quot;1,000&quot; → \d+,\d+ → TOKEN_NUM (not TOKEN_NUM,TOKEN_NUM → &quot;token_numtoken_num&quot;)</span>
+<span class="c1"># e.g. &quot;9/4/3&quot;  → would otherwise become &quot;943&quot; after punctuation stripping</span>
+<span class="n">_FORMATTED_NR</span>  <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\b\d+(?:[.,]\d+)+\b&#39;</span><span class="p">)</span>   <span class="c1"># comma/dot separated: 1,000 / 1.50 / 1,234.56</span>
+<span class="n">_SEP_NR</span>        <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\b\d+(?:[/\-]\d+)+\b&#39;</span><span class="p">)</span>  <span class="c1"># slash/dash sequences: 9/4/3, 02-09-03</span>
+<span class="n">_STANDALONE_NR</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\b\d+\b&#39;</span><span class="p">)</span>  <span class="c1"># \b prevents matching digits inside alphanumeric tokens (e.g. &quot;hasi69&quot;)</span>
 <span class="n">_U_UMLAUT</span>      <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Ü&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
 
 
@@ -353,6 +369,30 @@
 
 <span class="sd">        &gt;&gt;&gt; preprocess(&quot;Claim your $1000 prize&quot;)</span>
 <span class="sd">        &#39;Claim your TOKEN_CURRENCY TOKEN_NUM prize&#39;</span>
+
+<span class="sd">        &gt;&gt;&gt; preprocess(&quot;c u 2 night 4 free&quot;)</span>
+<span class="sd">        &#39;c u TOKEN_NUM night TOKEN_NUM free&#39;</span>
+
+<span class="sd">        &gt;&gt;&gt; preprocess(&quot;hasi69 is my username&quot;)</span>
+<span class="sd">        &#39;hasi69 is my username&#39;</span>
+
+<span class="sd">        &gt;&gt;&gt; preprocess(&quot;Win 1000 EUR now!&quot;)</span>
+<span class="sd">        &#39;Win TOKEN_NUM TOKEN_CURRENCY now!&#39;</span>
+
+<span class="sd">        &gt;&gt;&gt; preprocess(&quot;Send 500 usd to win&quot;)</span>
+<span class="sd">        &#39;Send TOKEN_NUM TOKEN_CURRENCY to win&#39;</span>
+
+<span class="sd">        &gt;&gt;&gt; preprocess(&quot;Win £100,000 prize now!&quot;)</span>
+<span class="sd">        &#39;Win TOKEN_CURRENCY TOKEN_NUM prize now!&#39;</span>
+
+<span class="sd">        &gt;&gt;&gt; preprocess(&quot;awarded on 02/09/03&quot;)</span>
+<span class="sd">        &#39;awarded on TOKEN_NUM&#39;</span>
+
+<span class="sd">        &gt;&gt;&gt; preprocess(&quot;costs 1.50 per week&quot;)</span>
+<span class="sd">        &#39;costs TOKEN_NUM per week&#39;</span>
+
+<span class="sd">        &gt;&gt;&gt; preprocess(&quot;win 1000 euros now&quot;)</span>
+<span class="sd">        &#39;win TOKEN_NUM TOKEN_CURRENCY now&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">_U_UMLAUT</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>              <span class="c1"># Ü/ü → u: shorthand for &quot;you&quot;, removes spurious HAM bias</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">_AT_USER_HTML</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;TOKEN_USER&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>     <span class="c1"># @ &lt;URL&gt;: NUS mention placeholder → token (presence matters)</span>
@@ -367,6 +407,10 @@
     <span class="n">text</span> <span class="o">=</span> <span class="n">_HTML_LEFTOVER</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">_REAL_URL</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;TOKEN_URL&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">_CURRENCY</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;TOKEN_CURRENCY &quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>    <span class="c1"># before STANDALONE_NR so £500 → TOKEN_CURRENCY TOKEN_NUM</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_CURRENCY_CODE</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;TOKEN_CURRENCY&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_CURRENCY_WORD</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;TOKEN_CURRENCY&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_FORMATTED_NR</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;TOKEN_NUM&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>      <span class="c1"># before STANDALONE_NR: 1,000 / 1.50 → single TOKEN_NUM</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_SEP_NR</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;TOKEN_NUM&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>            <span class="c1"># before STANDALONE_NR: 9/4/3 → TOKEN_NUM (not &quot;943&quot;)</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">_STANDALONE_NR</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;TOKEN_NUM&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></div>
 

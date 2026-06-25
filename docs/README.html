@@ -556,38 +556,29 @@ there is no risk of divergence between training and prediction.</p>
 <p>This dataset is useful for demonstrating the approach but carries biases that
 directly affect what the trained model can and cannot do.</p>
 <p><strong>Geographic and linguistic bias</strong></p>
-<p>The corpus is a mix of UK and Singaporean English. The HAM messages from the
-NUS corpus reflect the vocabulary and writing style of Singaporean university
-students (e.g. “lor”, “lah”, “da” as discourse particles). The SPAM messages
-were collected from a UK forum and reflect UK premium-rate SMS fraud patterns
-(“prize”, “claim”, “await collection”, “150p per msg”, “BT national rate”).</p>
-<p>A model trained on this data is a reasonable UK/Singapore spam detector.
-Applied to Austrian, German, or Brazilian traffic, it would encounter different
-vocabulary, different fraud patterns, different SMS conventions — and its
-performance would degrade accordingly. The training data does not cover these
-cases, so the model cannot be expected to generalise to them.</p>
-<p><strong>The A1-specific irony</strong></p>
-<p>This case study was issued by A1 Telekom Austria — an Austrian carrier whose
-customers communicate primarily in German (and to a significant degree in
-Turkish, Serbian, and other languages spoken in Austria). A1’s real SMS traffic
-would arrive in German. The spam targeting Austrian users would be written in
-German. The fraud patterns — “Sie haben gewonnen”, premium-rate numbers starting
-with 0900, Kleinanzeigen scams, Paketbenachrichtigungs-Phishing — are entirely
-absent from this dataset.</p>
-<p>In a production context the English training data would need to be replaced
-with labelled Austrian/German traffic. The approach taken here (TF-IDF +
-Logistic Regression + evaluation pipeline) generalises to any language —
-only the training corpus needs to change. Pointing this out explicitly is
-part of answering the case study responsibly.</p>
+<p>The corpus is UK/Singaporean English. HAM reflects Singaporean student
+vocabulary (“lor”, “lah”, “da”); SPAM reflects UK premium-rate fraud
+(“prize”, “claim”, “150p per msg”). The model is a reasonable UK/Singapore
+spam detector — on Austrian, German, or other traffic it would encounter
+different patterns and performance would degrade.</p>
+<p><strong>Fit for A1’s actual use case</strong></p>
+<p>A1’s customers communicate in German. Austrian spam runs in German —
+0900 numbers, Paketbenachrichtigungs-Phishing, Kleinanzeigen-Betrug.
+None of that is in this dataset. For production: same package, same
+architecture, different training corpus.</p>
 <p><strong>Currency symbols as a concrete example</strong></p>
 <p>In this dataset, <code class="docutils literal notranslate"><span class="pre">£</span></code> (British pound) appears almost exclusively in SPAM.
 Without normalisation, the model would learn “£ = spam signal” — which is true
 for UK data but useless (or misleading) for traffic where <code class="docutils literal notranslate"><span class="pre">€</span></code>, <code class="docutils literal notranslate"><span class="pre">$</span></code>, or <code class="docutils literal notranslate"><span class="pre">₹</span></code>
 are the local currency. The preprocessing step normalises all currency symbols
 to <code class="docutils literal notranslate"><span class="pre">TOKEN_CURRENCY</span></code>, so the model learns “a currency symbol before an amount =
-spam signal” rather than anything tied to a specific currency. This is a
-deliberate decision to improve generalisability within the limits of the
-available data.</p>
+spam signal” rather than anything tied to a specific currency.</p>
+<p>Extensions worth considering: ISO currency codes (<code class="docutils literal notranslate"><span class="pre">EUR</span></code>, <code class="docutils literal notranslate"><span class="pre">USD</span></code>, <code class="docutils literal notranslate"><span class="pre">GBP</span></code>, …) are
+not covered by symbol matching and would benefit from the same treatment.
+Cryptocurrency contexts could justify a dedicated <code class="docutils literal notranslate"><span class="pre">TOKEN_CRYPTO</span></code> token —
+crypto scams have a distinct signature (<code class="docutils literal notranslate"><span class="pre">BTC</span></code>, <code class="docutils literal notranslate"><span class="pre">ETH</span></code>, wallet addresses) that
+may be worth separating from fiat-currency spam. Both are deliberate design
+decisions, not oversights.</p>
 <p><strong>Spurious correlations and adversarial robustness — a concrete example</strong></p>
 <p>The NUS corpus contains ~50 HAM messages where one or a few contributors used
 <code class="docutils literal notranslate"><span class="pre">Ü</span></code> as SMS shorthand for “you” (identical in meaning to the common <code class="docutils literal notranslate"><span class="pre">u</span></code>). The
@@ -705,13 +696,19 @@ sms-analyze<span class="w"> </span>classification<span class="w">   </span><span
 sms-analyze<span class="w"> </span>classification<span class="w"> </span>--model<span class="w"> </span>naive_bayes<span class="w">   </span><span class="c1"># baseline comparison</span>
 </pre></div>
 </div>
-<p>Generated plots and trained models are saved to <code class="docutils literal notranslate"><span class="pre">outputs/</span></code> by default.
-<code class="docutils literal notranslate"><span class="pre">.joblib</span></code> / <code class="docutils literal notranslate"><span class="pre">.pkl</span></code> model files and subdirectories inside <code class="docutils literal notranslate"><span class="pre">outputs/</span></code> are gitignored;
-top-level PNGs (from notebook and CLI runs) are committed.</p>
-<p>A committed reference snapshot is in <a class="reference internal" href="#solution/"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">solution/</span></code></span></a> — a clean Part 1 run
-(Tasks 1–4, both LR and NB). Task 5 (clustering) requires an Ollama installation
-and is not included; run <code class="docutils literal notranslate"><span class="pre">sms-analyze</span> <span class="pre">clustering</span></code> separately after completing the
-Ollama setup in <code class="docutils literal notranslate"><span class="pre">scripts/setup_ollama.sh</span></code>.</p>
+<p><strong>Inspect the preprocessing pipeline:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sms-analyze<span class="w"> </span>normalized
+</pre></div>
+</div>
+<p>Writes <code class="docutils literal notranslate"><span class="pre">outputs/normalized_texts.tsv</span></code> — a tab-separated file with three columns
+(<code class="docutils literal notranslate"><span class="pre">label</span></code>, <code class="docutils literal notranslate"><span class="pre">original</span></code>, <code class="docutils literal notranslate"><span class="pre">normalized</span></code>) covering all 5 574 messages. Open it in
+Excel / LibreOffice Calc or load it with <code class="docutils literal notranslate"><span class="pre">pd.read_csv(...,</span> <span class="pre">sep=&quot;\t&quot;)</span></code> to verify
+what the normalisation pipeline does to individual messages (e.g. how <code class="docutils literal notranslate"><span class="pre">£100,000</span></code>,
+<code class="docutils literal notranslate"><span class="pre">07-815-296</span></code>, or NUS placeholders like <code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code> are handled).
+<code class="docutils literal notranslate"><span class="pre">sms-analyze</span> <span class="pre">all</span></code> includes this step automatically.</p>
+<p>Generated plots, trained models, and the TSV are saved to <code class="docutils literal notranslate"><span class="pre">outputs/</span></code> by default.
+<code class="docutils literal notranslate"><span class="pre">outputs/</span></code> is intentionally empty — it is the runtime output directory and
+its contents are not included in this deliverable.</p>
 <p><strong>Or open the Jupyter notebooks:</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>jupyter<span class="w"> </span>notebook<span class="w"> </span>notebooks/
 </pre></div>

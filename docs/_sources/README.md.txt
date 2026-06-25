@@ -213,33 +213,18 @@ directly affect what the trained model can and cannot do.
 
 **Geographic and linguistic bias**
 
-The corpus is a mix of UK and Singaporean English. The HAM messages from the
-NUS corpus reflect the vocabulary and writing style of Singaporean university
-students (e.g. "lor", "lah", "da" as discourse particles). The SPAM messages
-were collected from a UK forum and reflect UK premium-rate SMS fraud patterns
-("prize", "claim", "await collection", "150p per msg", "BT national rate").
+The corpus is UK/Singaporean English. HAM reflects Singaporean student
+vocabulary ("lor", "lah", "da"); SPAM reflects UK premium-rate fraud
+("prize", "claim", "150p per msg"). The model is a reasonable UK/Singapore
+spam detector — on Austrian, German, or other traffic it would encounter
+different patterns and performance would degrade.
 
-A model trained on this data is a reasonable UK/Singapore spam detector.
-Applied to Austrian, German, or Brazilian traffic, it would encounter different
-vocabulary, different fraud patterns, different SMS conventions — and its
-performance would degrade accordingly. The training data does not cover these
-cases, so the model cannot be expected to generalise to them.
+**Fit for A1's actual use case**
 
-**The A1-specific irony**
-
-This case study was issued by A1 Telekom Austria — an Austrian carrier whose
-customers communicate primarily in German (and to a significant degree in
-Turkish, Serbian, and other languages spoken in Austria). A1's real SMS traffic
-would arrive in German. The spam targeting Austrian users would be written in
-German. The fraud patterns — "Sie haben gewonnen", premium-rate numbers starting
-with 0900, Kleinanzeigen scams, Paketbenachrichtigungs-Phishing — are entirely
-absent from this dataset.
-
-In a production context the English training data would need to be replaced
-with labelled Austrian/German traffic. The approach taken here (TF-IDF +
-Logistic Regression + evaluation pipeline) generalises to any language —
-only the training corpus needs to change. Pointing this out explicitly is
-part of answering the case study responsibly.
+A1's customers communicate in German. Austrian spam runs in German —
+0900 numbers, Paketbenachrichtigungs-Phishing, Kleinanzeigen-Betrug.
+None of that is in this dataset. For production: same package, same
+architecture, different training corpus.
 
 **Currency symbols as a concrete example**
 
@@ -248,9 +233,14 @@ Without normalisation, the model would learn "£ = spam signal" — which is tru
 for UK data but useless (or misleading) for traffic where `€`, `$`, or `₹`
 are the local currency. The preprocessing step normalises all currency symbols
 to `TOKEN_CURRENCY`, so the model learns "a currency symbol before an amount =
-spam signal" rather than anything tied to a specific currency. This is a
-deliberate decision to improve generalisability within the limits of the
-available data.
+spam signal" rather than anything tied to a specific currency.
+
+Extensions worth considering: ISO currency codes (`EUR`, `USD`, `GBP`, …) are
+not covered by symbol matching and would benefit from the same treatment.
+Cryptocurrency contexts could justify a dedicated `TOKEN_CRYPTO` token —
+crypto scams have a distinct signature (`BTC`, `ETH`, wallet addresses) that
+may be worth separating from fiat-currency spam. Both are deliberate design
+decisions, not oversights.
 
 **Spurious correlations and adversarial robustness — a concrete example**
 
@@ -373,14 +363,20 @@ sms-analyze classification   # Task 4 – train, evaluate, save model
 sms-analyze classification --model naive_bayes   # baseline comparison
 ```
 
-Generated plots and trained models are saved to `outputs/` by default.
-`.joblib` / `.pkl` model files and subdirectories inside `outputs/` are gitignored;
-top-level PNGs (from notebook and CLI runs) are committed.
+**Inspect the preprocessing pipeline:**
+```bash
+sms-analyze normalized
+```
+Writes `outputs/normalized_texts.tsv` — a tab-separated file with three columns
+(`label`, `original`, `normalized`) covering all 5 574 messages. Open it in
+Excel / LibreOffice Calc or load it with `pd.read_csv(..., sep="\t")` to verify
+what the normalisation pipeline does to individual messages (e.g. how `£100,000`,
+`07-815-296`, or NUS placeholders like `&lt;#&gt;` are handled).
+`sms-analyze all` includes this step automatically.
 
-A committed reference snapshot is in [`solution/`](solution/) — a clean Part 1 run
-(Tasks 1–4, both LR and NB). Task 5 (clustering) requires an Ollama installation
-and is not included; run `sms-analyze clustering` separately after completing the
-Ollama setup in `scripts/setup_ollama.sh`.
+Generated plots, trained models, and the TSV are saved to `outputs/` by default.
+`outputs/` is intentionally empty — it is the runtime output directory and
+its contents are not included in this deliverable.
 
 **Or open the Jupyter notebooks:**
 ```bash

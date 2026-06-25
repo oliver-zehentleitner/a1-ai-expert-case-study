@@ -475,7 +475,10 @@ not anonymisation).</p>
 <code class="docutils literal notranslate"><span class="pre">TOKEN_NUM</span></code>      – <code class="docutils literal notranslate"><span class="pre">&amp;lt;#&amp;gt;</span></code> / <code class="docutils literal notranslate"><span class="pre">&amp;lt;DECIMAL&amp;gt;</span></code> (NUS) or digit sequence (typed) — a number was present
 <code class="docutils literal notranslate"><span class="pre">TOKEN_TIME</span></code>     – <code class="docutils literal notranslate"><span class="pre">&amp;lt;TIME&amp;gt;</span></code> (NUS) — a time value was present
 <code class="docutils literal notranslate"><span class="pre">TOKEN_EMAIL</span></code>    – <code class="docutils literal notranslate"><span class="pre">&amp;lt;EMAIL&amp;gt;</span></code> (NUS) — an e-mail address was present
-<code class="docutils literal notranslate"><span class="pre">TOKEN_CURRENCY</span></code> – currency symbol (£, $, €, …) typed by user; locale-normalised</p>
+<code class="docutils literal notranslate"><span class="pre">TOKEN_CURRENCY</span></code> – currency symbol (£, $, €, …), ISO code (USD, EUR, GBP, …), or written</p>
+<blockquote>
+<div><p>word (dollar, euro, pounds, …) — locale-normalised</p>
+</div></blockquote>
 </section>
 <section id="character-normalisation">
 <h3>Character normalisation<a class="headerlink" href="#character-normalisation" title="Link to this heading">¶</a></h3>
@@ -526,6 +529,30 @@ preventing train-serve skew.</p>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;Claim your $1000 prize&quot;</span><span class="p">)</span>
 <span class="go">&#39;Claim your TOKEN_CURRENCY TOKEN_NUM prize&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;c u 2 night 4 free&quot;</span><span class="p">)</span>
+<span class="go">&#39;c u TOKEN_NUM night TOKEN_NUM free&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;hasi69 is my username&quot;</span><span class="p">)</span>
+<span class="go">&#39;hasi69 is my username&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;Win 1000 EUR now!&quot;</span><span class="p">)</span>
+<span class="go">&#39;Win TOKEN_NUM TOKEN_CURRENCY now!&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;Send 500 usd to win&quot;</span><span class="p">)</span>
+<span class="go">&#39;Send TOKEN_NUM TOKEN_CURRENCY to win&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;Win £100,000 prize now!&quot;</span><span class="p">)</span>
+<span class="go">&#39;Win TOKEN_CURRENCY TOKEN_NUM prize now!&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;awarded on 02/09/03&quot;</span><span class="p">)</span>
+<span class="go">&#39;awarded on TOKEN_NUM&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;costs 1.50 per week&quot;</span><span class="p">)</span>
+<span class="go">&#39;costs TOKEN_NUM per week&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">preprocess</span><span class="p">(</span><span class="s2">&quot;win 1000 euros now&quot;</span><span class="p">)</span>
+<span class="go">&#39;win TOKEN_NUM TOKEN_CURRENCY now&#39;</span>
 </pre></div>
 </div>
 </dd></dl>
