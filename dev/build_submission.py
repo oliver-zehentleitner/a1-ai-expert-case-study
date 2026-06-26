@@ -50,6 +50,7 @@ SKIP_NAMES = {
     ".gitkeep",
     "AGENTS.md",
     "AGENTS.override.md",
+    "cheat-sheet.txt",
 }
 
 SKIP_SUFFIXES = {".pyc"}
