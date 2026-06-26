@@ -49,6 +49,23 @@ if [[ -d "$ROOT/notebooks" ]]; then
     cp -r "$ROOT/notebooks" "$ROOT/docs/notebooks"
 fi
 
+# Convert notebooks to HTML for read-only viewing in the docs.
+# Uses committed cell outputs — notebooks are not re-executed during the build.
+echo "Converting notebooks to HTML…"
+VENV_JUPYTER="$ROOT/.venv/bin/jupyter"
+if [[ -x "$VENV_JUPYTER" ]]; then
+    for nb in "$ROOT/notebooks"/*.ipynb; do
+        "$VENV_JUPYTER" nbconvert \
+            --to html \
+            --output-dir "$ROOT/docs/notebooks/" \
+            --no-prompt \
+            "$nb" 2>/dev/null
+        echo "  converted: $(basename "$nb")"
+    done
+else
+    echo "  WARNING: .venv/bin/jupyter not found — skipping notebook HTML conversion"
+fi
+
 echo ""
 echo "Docs ready: docs/index.html"
 
