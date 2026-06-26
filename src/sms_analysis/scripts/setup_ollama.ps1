@@ -3,7 +3,7 @@
 # Safe to run multiple times (idempotent).
 #Requires -Version 5.1
 
-$Model = $env:SMS_OLLAMA_MODEL ?? "nomic-embed-text"
+if ($env:SMS_OLLAMA_MODEL) { $Model = $env:SMS_OLLAMA_MODEL } else { $Model = "nomic-embed-text" }
 
 Write-Host "==> Checking Ollama installation..."
 if (Get-Command ollama -ErrorAction SilentlyContinue) {
@@ -15,6 +15,9 @@ if (Get-Command ollama -ErrorAction SilentlyContinue) {
     Write-Host "==> Running installer (follow the prompts)..."
     Start-Process -FilePath $Installer -Wait
     Remove-Item $Installer
+    # Refresh PATH for this session so 'ollama' is found without restarting.
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" +
+                [System.Environment]::GetEnvironmentVariable("Path","User")
 }
 
 Write-Host "==> Pulling model: $Model"
