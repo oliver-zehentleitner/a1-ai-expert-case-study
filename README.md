@@ -226,6 +226,22 @@ A1's customers communicate in German. Austrian spam runs in German —
 None of that is in this dataset. For production: same package, same
 architecture, different training corpus.
 
+The live prediction demo in [Notebook 4](notebooks/04_classification.ipynb)
+tests both English and German messages and reveals a nuanced picture:
+
+- **German SPAM is reliably detected** (e.g. 98 % confidence on a German prize
+  announcement). Structural spam signals — `TOKEN_NUM` for premium-rate numbers,
+  `TOKEN_URL`, `TOKEN_CURRENCY` — survive preprocessing unchanged and cross
+  language boundaries.
+- **German HAM is at higher false-positive risk than English HAM** when the
+  message contains those same structural tokens. A German appointment reminder
+  with a URL scores 74 % SPAM probability; its English equivalent scores 45 %
+  (borderline HAM). A German bank TAN confirmation scores 89 % SPAM; the English
+  version 59 %. The reason: English words like "appointment", "reschedule",
+  "transaction", "bank" carry small HAM weight from the training corpus; their
+  German equivalents ("Termin", "Absagen", "Freigabe") are unknown to the model
+  and contribute zero weight — the structural spam tokens dominate unopposed.
+
 **Currency symbols as a concrete example**
 
 In this dataset, `£` (British pound) appears almost exclusively in SPAM.

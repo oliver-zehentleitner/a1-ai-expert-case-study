@@ -64,7 +64,9 @@ Das `+1` ist Laplace-Smoothing: verhindert Division durch null wenn ein Wort in 
 
 ### Was wir sehen
 
-Starke SPAM-Signale: `claim`, `£num` (jetzt `__currency__`), `prize`, `guaranteed`, `awarded`, `urgent`, `150ppm`, `tcs` (Terms & Conditions), `ringtone`, `sae` (Stamped Addressed Envelope — britisches Postverfahren)
+Starke SPAM-Signale (tatsächliche Top-Wörter aus dem Datensatz): `claim`, `token_currency`, `prize`, `guaranteed`, `awarded`, `150p`, `150ppm`, `tcs` (Terms & Conditions), `ringtone`, `sae` (Stamped Addressed Envelope — britisches Postverfahren), `token_url`
+
+Hinweis: `£` taucht hier *nicht* direkt auf — es wird von `preprocess()` zu `token_currency` umgewandelt, bevor die Analyse rechnet. Das Feature im Modell ist `token_currency`, nicht das rohe Symbol.
 
 Starke HAM-Signale: `u`, `lor` (Singlish), `later`, `da`, `ill`, `lol`, `morning`, `sorry`
 
