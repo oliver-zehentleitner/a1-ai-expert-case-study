@@ -39,15 +39,15 @@ rm -rf "$ROOT/dev/sphinx/config/notebooks"
 # Required for GitHub Pages to serve Sphinx's _static/ directory correctly.
 touch "$ROOT/docs/.nojekyll"
 
-# Copy assignment and notebook files into docs/ so links work when browsing docs/index.html.
+# Copy assignment files into docs/ so links work when browsing docs/index.html.
 if [[ -d "$ROOT/assignment" ]]; then
     rm -rf "$ROOT/docs/assignment"
     cp -r "$ROOT/assignment" "$ROOT/docs/assignment"
 fi
-if [[ -d "$ROOT/notebooks" ]]; then
-    rm -rf "$ROOT/docs/notebooks"
-    cp -r "$ROOT/notebooks" "$ROOT/docs/notebooks"
-fi
+
+# docs/notebooks/ only needs the nbconvert HTML output; the .ipynb files are
+# served via Sphinx's _downloads/ mechanism and don't need to live here too.
+mkdir -p "$ROOT/docs/notebooks"
 
 # Convert notebooks to HTML for read-only viewing in the docs.
 # Uses committed cell outputs — notebooks are not re-executed during the build.
