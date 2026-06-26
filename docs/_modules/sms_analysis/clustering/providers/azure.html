@@ -189,8 +189,10 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+  <p class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../notebooks.html">Notebooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../overview.html">AI Expert Case Study – Oliver Zehentleitner</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../cli.html">CLI Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../architecture.html">Architecture</a></li>
@@ -227,69 +229,65 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for sms_analysis.clustering.providers.azure</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Azure OpenAI embedding provider.</span>
+<span></span><span class="sd">&quot;&quot;&quot;Azure AI Foundry embedding provider.</span>
 
-<span class="sd">Azure OpenAI uses the same Python client as OpenAI — only the instantiation</span>
-<span class="sd">differs (endpoint + api_version instead of a global base URL).  This is a</span>
-<span class="sd">clean example of how the provider abstraction pays off: identical logic,</span>
-<span class="sd">different config.</span>
+<span class="sd">Azure AI Foundry exposes an OpenAI-compatible /openai/v1 endpoint where model</span>
+<span class="sd">IDs are used directly — no separate deployment setup required.  Multilingual</span>
+<span class="sd">models such as Cohere-embed-v3-multilingual are available out of the box.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">AzureOpenAI</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAI</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">..base</span><span class="w"> </span><span class="kn">import</span> <span class="n">EmbeddingProvider</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
-<span class="n">_BATCH_SIZE</span> <span class="o">=</span> <span class="mi">256</span>
+<span class="n">_BATCH_SIZE</span> <span class="o">=</span> <span class="mi">96</span>   <span class="c1"># Cohere models in Azure AI Foundry cap at 96 texts per request</span>
 
 
 <div class="viewcode-block" id="AzureOpenAIProvider">
 <a class="viewcode-back" href="../../../../api.html#sms_analysis.clustering.providers.azure.AzureOpenAIProvider">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">AzureOpenAIProvider</span><span class="p">(</span><span class="n">EmbeddingProvider</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Embed texts via Azure OpenAI Service.</span>
+<span class="sd">    Embed texts via Azure AI Foundry&#39;s OpenAI-compatible endpoint.</span>
 
 <span class="sd">    Required environment variables (prefix ``SMS_``)::</span>
 
 <span class="sd">        SMS_AZURE_OPENAI_API_KEY=...</span>
-<span class="sd">        SMS_AZURE_OPENAI_ENDPOINT=https://&lt;resource&gt;.openai.azure.com/</span>
-<span class="sd">        SMS_AZURE_OPENAI_DEPLOYMENT=text-embedding-3-small</span>
+<span class="sd">        SMS_AZURE_OPENAI_ENDPOINT=https://&lt;resource&gt;.openai.azure.com/openai/v1</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        api_key: Azure OpenAI API key.</span>
-<span class="sd">        endpoint: Azure resource endpoint URL.</span>
-<span class="sd">        deployment: Deployment / model name in your Azure resource.</span>
-<span class="sd">        api_version: Azure OpenAI API version string.</span>
+<span class="sd">        api_key: Azure API key.</span>
+<span class="sd">        endpoint: Full ``/openai/v1`` base URL of the Azure AI Foundry resource.</span>
+<span class="sd">        model: Model ID available in Azure AI Foundry catalog.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">endpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">deployment</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">api_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;2024-05-01-preview&quot;</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Cohere-embed-v3-multilingual&quot;</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">deployment</span> <span class="o">=</span> <span class="n">deployment</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="o">=</span> <span class="n">AzureOpenAI</span><span class="p">(</span>
-            <span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span>
-            <span class="n">azure_endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">,</span>
-            <span class="n">api_version</span><span class="o">=</span><span class="n">api_version</span><span class="p">,</span>
-        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="c1"># Normalise: ensure endpoint ends with /openai/v1</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="n">endpoint</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">base</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/openai/v1&quot;</span><span class="p">):</span>
+            <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/openai/v1&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="o">=</span> <span class="n">OpenAI</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span> <span class="n">base_url</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dims</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="AzureOpenAIProvider.embed">
 <a class="viewcode-back" href="../../../../api.html#sms_analysis.clustering.providers.azure.AzureOpenAIProvider.embed">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">embed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">texts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Embed texts in batches via Azure OpenAI.&quot;&quot;&quot;</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Embedding </span><span class="si">%d</span><span class="s2"> texts via Azure OpenAI (</span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">texts</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">deployment</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Embed texts in batches via Azure AI Foundry.&quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Embedding </span><span class="si">%d</span><span class="s2"> texts via Azure AI Foundry (</span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">texts</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
         <span class="n">all_vectors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">texts</span><span class="p">),</span> <span class="n">_BATCH_SIZE</span><span class="p">):</span>
             <span class="n">batch</span> <span class="o">=</span> <span class="n">texts</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">_BATCH_SIZE</span><span class="p">]</span>
-            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">embeddings</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">deployment</span><span class="p">,</span> <span class="nb">input</span><span class="o">=</span><span class="n">batch</span><span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">embeddings</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="nb">input</span><span class="o">=</span><span class="n">batch</span><span class="p">)</span>
             <span class="n">all_vectors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">embedding</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dims</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">all_vectors</span><span class="p">:</span>
@@ -300,7 +298,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dims</span> <span class="ow">or</span> <span class="mi">1536</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dims</span> <span class="ow">or</span> <span class="mi">1024</span></div>
 
 </pre></div>
         </article>

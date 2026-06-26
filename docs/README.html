@@ -193,6 +193,7 @@
   <p class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">AI Expert Case Study – Oliver Zehentleitner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks.html">Notebooks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
@@ -311,16 +312,49 @@ package and serve as the presentation layer — the library is the real delivera
 ├── classification/ – TF-IDF pipeline + evaluation utilities          (Task 4)
 ├── clustering/
 │   ├── base.py     – Abstract EmbeddingProvider interface            (Task 5)
-│   └── providers/  – Ollama · OpenAI · Azure OpenAI implementations
+│   └── providers/  – Ollama · OpenAI · Azure AI Foundry (Cohere) implementations
 ├── visualization/  – Reusable, presentation-ready plot functions
 └── cli.py          – sms-analyze CLI entrypoint
 </pre></div>
 </div>
 <p><strong>Key architectural decision — provider abstraction:</strong>
 The clustering logic depends only on the abstract <code class="docutils literal notranslate"><span class="pre">EmbeddingProvider</span></code> interface.
-Switching from local (Ollama) to cloud (OpenAI / Azure) is a single config
-change — no code change. This follows the Strategy pattern and makes the
-solution testable, extensible, and provider-agnostic.</p>
+Switching providers is a single config change — no code change. This follows the
+Strategy pattern and makes the solution testable, extensible, and provider-agnostic.</p>
+<p>The three providers are intentionally diverse — different vendors, different model
+families, different deployment models — rather than the same model hosted three ways:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Provider</p></th>
+<th class="head"><p>Model</p></th>
+<th class="head"><p>Dimensions</p></th>
+<th class="head"><p>Focus</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Ollama (local)</p></td>
+<td><p>nomic-embed-text</p></td>
+<td><p>768</p></td>
+<td><p>English, privacy-first, no API key</p></td>
+</tr>
+<tr class="row-odd"><td><p>OpenAI</p></td>
+<td><p>text-embedding-3-small</p></td>
+<td><p>1536</p></td>
+<td><p>English, state-of-the-art</p></td>
+</tr>
+<tr class="row-even"><td><p>Azure AI Foundry</p></td>
+<td><p>Cohere-embed-v3-multilingual</p></td>
+<td><p>1024</p></td>
+<td><p><strong>Multilingual</strong>, relevant for German SMS</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Azure AI Foundry is used via its <code class="docutils literal notranslate"><span class="pre">/openai/v1</span></code> compatibility endpoint with the Cohere
+serverless model — no deployment configuration required. <code class="docutils literal notranslate"><span class="pre">text-embedding-3-small</span></code> would
+also be available on Azure but would require creating an explicit deployment and would
+duplicate the OpenAI provider without adding value.</p>
 <p><strong>Configuration</strong> is fully environment-driven via <code class="docutils literal notranslate"><span class="pre">pydantic-settings</span></code>.
 All variables use the <code class="docutils literal notranslate"><span class="pre">SMS_</span></code> prefix (see <code class="docutils literal notranslate"><span class="pre">.env.example</span></code>).</p>
 </section>
@@ -662,11 +696,13 @@ where a more robust estimate across multiple folds is needed.</p>
 </section>
 <section id="genai-embeddings-part-2">
 <h3>GenAI / Embeddings (Part 2)<a class="headerlink" href="#genai-embeddings-part-2" title="Link to this heading">¶</a></h3>
-<p><strong>Embeddings — nomic-embed-text (Ollama) / text-embedding-3-small (OpenAI / Azure)</strong></p>
+<p><strong>Embeddings — three diverse providers (Ollama / OpenAI / Azure AI Foundry)</strong></p>
 <ul class="simple">
 <li><p><em>Advantage:</em> Dense semantic vectors capture meaning, not just vocabulary. Two semantically
 similar spam messages using completely different words land in the same cluster — impossible
-with TF-IDF. Running locally via Ollama requires no API key and works offline.</p></li>
+with TF-IDF. Running locally via Ollama requires no API key and works offline.
+The three providers cover different model families and deployment models, showing that the
+abstraction works across genuinely different backends (not just the same model re-hosted).</p></li>
 <li><p><em>Disadvantage:</em> Embedding 5,500 messages locally is slow on CPU (~minutes). API-based
 providers are faster but introduce a cost and a network dependency.</p></li>
 </ul>
@@ -746,9 +782,10 @@ Use <code class="docutils literal notranslate"><span class="pre">--yes</span></c
 <span class="c1"># prompts for SMS_OPENAI_API_KEY on first run and offers to save it to .env</span>
 </pre></div>
 </div>
-<p><strong>Option C — Azure OpenAI</strong></p>
+<p><strong>Option C — Azure AI Foundry (Cohere-embed-v3-multilingual)</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sms-analyze<span class="w"> </span>clustering<span class="w"> </span>--provider<span class="w"> </span>azure
-<span class="c1"># prompts for SMS_AZURE_OPENAI_API_KEY, endpoint, and deployment on first run</span>
+<span class="c1"># prompts for SMS_AZURE_OPENAI_API_KEY and endpoint on first run</span>
+<span class="c1"># endpoint format: https://&lt;resource&gt;.openai.azure.com/openai/v1</span>
 </pre></div>
 </div>
 </section>

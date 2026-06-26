@@ -3,6 +3,7 @@
 :caption: Reference
 
 overview
+notebooks
 cli
 api
 architecture

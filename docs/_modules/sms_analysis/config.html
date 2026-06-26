@@ -191,6 +191,8 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks.html">Notebooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">AI Expert Case Study – Oliver Zehentleitner</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../cli.html">CLI Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../architecture.html">Architecture</a></li>
@@ -247,6 +249,11 @@
 
 
 
+<span class="c1"># Resolve .env relative to this file (project root), not CWD — notebooks</span>
+<span class="c1"># run from notebooks/ and would otherwise miss the .env in the project root.</span>
+<span class="n">_ENV_FILE</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;.env&quot;</span>
+
+
 <div class="viewcode-block" id="Settings">
 <a class="viewcode-back" href="../../api.html#sms_analysis.config.Settings">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Settings</span><span class="p">(</span><span class="n">BaseSettings</span><span class="p">):</span>
@@ -260,12 +267,12 @@
 
 <span class="sd">        SMS_OPENAI_API_KEY=sk-...</span>
 <span class="sd">        SMS_AZURE_OPENAI_API_KEY=...</span>
-<span class="sd">        SMS_AZURE_OPENAI_ENDPOINT=https://&lt;resource&gt;.openai.azure.com/</span>
+<span class="sd">        SMS_AZURE_OPENAI_ENDPOINT=https://&lt;resource&gt;.openai.azure.com/openai/v1</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">model_config</span> <span class="o">=</span> <span class="n">SettingsConfigDict</span><span class="p">(</span>
         <span class="n">env_prefix</span><span class="o">=</span><span class="s2">&quot;SMS_&quot;</span><span class="p">,</span>
-        <span class="n">env_file</span><span class="o">=</span><span class="s2">&quot;.env&quot;</span><span class="p">,</span>
+        <span class="n">env_file</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">_ENV_FILE</span><span class="p">),</span>
         <span class="n">env_file_encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span>
         <span class="n">extra</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span>
     <span class="p">)</span>
@@ -285,11 +292,10 @@
     <span class="n">openai_api_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
     <span class="n">openai_model</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;text-embedding-3-small&quot;</span>
 
-    <span class="c1"># --- Azure OpenAI ------------------------------------------------------------</span>
+    <span class="c1"># --- Azure AI Foundry --------------------------------------------------------</span>
     <span class="n">azure_openai_api_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-    <span class="n">azure_openai_endpoint</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-    <span class="n">azure_openai_deployment</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;text-embedding-3-small&quot;</span>
-    <span class="n">azure_openai_api_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;2024-05-01-preview&quot;</span></div>
+    <span class="n">azure_openai_endpoint</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>   <span class="c1"># full /openai/v1 URL</span>
+    <span class="n">azure_openai_model</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Cohere-embed-v3-multilingual&quot;</span></div>
 
 
 
