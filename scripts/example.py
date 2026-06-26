@@ -49,6 +49,12 @@ samples = [
     "FREE entry to win 1000 EUR cash, text WIN to 09001234",
     "Claim your €500 reward at www.win2day.at immediately!",
     "Holen Sie sich jetzt Ihre 500-Euro-Prämie unter www.win2day.at!",
+    "Appointment on Tuesday, June 30, 2026, at 10:15 a.m. with Dr. Muster. To reschedule or cancel, please contact us at least 24 hours in advance at: https://praxis.at/t Your practice team",
+    "Termin am Di, 30.06.2026 um 10:15 Uhr bei Dr. Muster. Ändern/Absagen bis 24h vorher unter: https://praxis.at/t Ihr Praxisteam",
+    "Authorization for your transaction of 45.50 EUR to Muster GmbH. Your TAN is: 823 914. Never disclose this number to third parties! Your bank.",
+    "Freigabe für Ihren Auftrag über 45,50 EUR an Muster GmbH. Ihre TAN lautet: 823 914. Geben Sie diese Nummer niemals an Dritte weiter! Ihre Bank.",
+    "Opas Handy ist kaputt, du kannst ihm in dringenden Fällen jederzeit unter seiner Festnetznummer 01/123456 erreichen!",
+    "Grandpa's cell phone is broken, but you can always reach him at his landline number, 01/123456, in case of an emergency!",
 ]
 predictions = clf.predict(samples)
 probas = clf.predict_proba(samples)
@@ -56,7 +62,7 @@ probas = clf.predict_proba(samples)
 print("\nPredictions:")
 for text, label, proba in zip(samples, predictions, probas):
     p_spam = proba[1]
-    print(f"  [{label.upper():4s}  p={p_spam:.2f}]  {text[:60]}")
+    print(f"  [{label.upper():4s}  p={p_spam:.2f}]  {text}")
 
 # ── 6. Top features (what drives the model) ───────────────────────────────────
 features = clf.top_features(n=10)
