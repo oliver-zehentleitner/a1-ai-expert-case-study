@@ -15,6 +15,11 @@ class EmbeddingProviderType(str, Enum):
     AZURE = "azure"
 
 
+# Resolve .env relative to this file (project root), not CWD — notebooks
+# run from notebooks/ and would otherwise miss the .env in the project root.
+_ENV_FILE = Path(__file__).resolve().parent.parent.parent / ".env"
+
+
 class Settings(BaseSettings):
     """
     Environment-driven configuration (prefix: ``SMS_``).
@@ -31,7 +36,7 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_prefix="SMS_",
-        env_file=".env",
+        env_file=str(_ENV_FILE),
         env_file_encoding="utf-8",
         extra="ignore",
     )
