@@ -75,6 +75,15 @@ Silhouette misst geometrische Kompaktheit, nicht fachliche Relevanz. Cohere find
 
 ## Laufzeit-Warnungen die kein Problem sind
 
+### `UserWarning: Spectral initialisation failed! … Falling back to random initialisation!`
+
+**Was passiert:** UMAP versucht defaultmäßig die Graph-Struktur mit einer Spectral-Decomposition zu initialisieren (`init="spectral"`). Bei großen Datasets oder Daten mit sehr kleinem Eigengap (wenig globale Struktur) schlägt das fehl.  
+**Lösung:** Wir setzen `init="random"` explizit — das ist etwas weniger deterministisch in der Endposition, aber für unsere Visualisierung irrelevant (wir zeigen Cluster-Zugehörigkeit, keine absoluten Koordinaten). Die Warnung ist damit weg.
+
+**Im Hearing:** *"UMAP hat per Default eine Spectral-Initialisierung, die bei großen Datasets mit geringem Eigengap scheitert und dann auf Random fällt — mit der Warnung. Wir setzen `init='random'` direkt, damit der Fehlversuch entfällt."*
+
+---
+
 ### `UserWarning: n_jobs value 1 overridden to 1 by setting random_state`
 
 **Was passiert:** UMAP kann Berechnungen auf mehrere CPU-Cores parallelisieren (`n_jobs`).  
