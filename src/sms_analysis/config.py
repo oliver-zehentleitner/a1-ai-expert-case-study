@@ -26,7 +26,7 @@ class Settings(BaseSettings):
 
         SMS_OPENAI_API_KEY=sk-...
         SMS_AZURE_OPENAI_API_KEY=...
-        SMS_AZURE_OPENAI_ENDPOINT=https://<resource>.openai.azure.com/
+        SMS_AZURE_OPENAI_ENDPOINT=https://<resource>.openai.azure.com/openai/v1
     """
 
     model_config = SettingsConfigDict(
@@ -51,11 +51,10 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_model: str = "text-embedding-3-small"
 
-    # --- Azure OpenAI ------------------------------------------------------------
+    # --- Azure AI Foundry --------------------------------------------------------
     azure_openai_api_key: str = ""
-    azure_openai_endpoint: str = ""
-    azure_openai_deployment: str = "text-embedding-3-small"
-    azure_openai_api_version: str = "2024-05-01-preview"
+    azure_openai_endpoint: str = ""   # full /openai/v1 URL
+    azure_openai_model: str = "Cohere-embed-v3-multilingual"
 
 
 def configure_logging(level: str = "INFO") -> None:

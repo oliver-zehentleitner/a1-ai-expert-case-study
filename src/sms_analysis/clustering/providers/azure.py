@@ -1,62 +1,58 @@
-"""Azure OpenAI embedding provider.
+"""Azure AI Foundry embedding provider.
 
-Azure OpenAI uses the same Python client as OpenAI — only the instantiation
-differs (endpoint + api_version instead of a global base URL).  This is a
-clean example of how the provider abstraction pays off: identical logic,
-different config.
+Azure AI Foundry exposes an OpenAI-compatible /openai/v1 endpoint where model
+IDs are used directly — no separate deployment setup required.  Multilingual
+models such as Cohere-embed-v3-multilingual are available out of the box.
 """
 
 import logging
 
-from openai import AzureOpenAI
+from openai import OpenAI
 
 from ..base import EmbeddingProvider
 
 logger = logging.getLogger(__name__)
 
-_BATCH_SIZE = 256
+_BATCH_SIZE = 96   # Cohere models in Azure AI Foundry cap at 96 texts per request
 
 
 class AzureOpenAIProvider(EmbeddingProvider):
     """
-    Embed texts via Azure OpenAI Service.
+    Embed texts via Azure AI Foundry's OpenAI-compatible endpoint.
 
     Required environment variables (prefix ``SMS_``)::
 
         SMS_AZURE_OPENAI_API_KEY=...
-        SMS_AZURE_OPENAI_ENDPOINT=https://<resource>.openai.azure.com/
-        SMS_AZURE_OPENAI_DEPLOYMENT=text-embedding-3-small
+        SMS_AZURE_OPENAI_ENDPOINT=https://<resource>.openai.azure.com/openai/v1
 
     Args:
-        api_key: Azure OpenAI API key.
-        endpoint: Azure resource endpoint URL.
-        deployment: Deployment / model name in your Azure resource.
-        api_version: Azure OpenAI API version string.
+        api_key: Azure API key.
+        endpoint: Full ``/openai/v1`` base URL of the Azure AI Foundry resource.
+        model: Model ID available in Azure AI Foundry catalog.
     """
 
     def __init__(
         self,
         api_key: str,
         endpoint: str,
-        deployment: str,
-        api_version: str = "2024-05-01-preview",
+        model: str = "Cohere-embed-v3-multilingual",
     ) -> None:
-        self.deployment = deployment
-        self._client = AzureOpenAI(
-            api_key=api_key,
-            azure_endpoint=endpoint,
-            api_version=api_version,
-        )
+        self.model = model
+        # Normalise: ensure endpoint ends with /openai/v1
+        base = endpoint.rstrip("/")
+        if not base.endswith("/openai/v1"):
+            base = f"{base}/openai/v1"
+        self._client = OpenAI(api_key=api_key, base_url=f"{base}/")
         self._dims: int | None = None
 
     def embed(self, texts: list[str]) -> list[list[float]]:
-        """Embed texts in batches via Azure OpenAI."""
-        logger.info("Embedding %d texts via Azure OpenAI (%s)", len(texts), self.deployment)
+        """Embed texts in batches via Azure AI Foundry."""
+        logger.info("Embedding %d texts via Azure AI Foundry (%s)", len(texts), self.model)
         all_vectors: list[list[float]] = []
 
         for i in range(0, len(texts), _BATCH_SIZE):
             batch = texts[i : i + _BATCH_SIZE]
-            response = self._client.embeddings.create(model=self.deployment, input=batch)
+            response = self._client.embeddings.create(model=self.model, input=batch)
             all_vectors.extend(item.embedding for item in response.data)
 
         if self._dims is None and all_vectors:
@@ -66,4 +62,4 @@ class AzureOpenAIProvider(EmbeddingProvider):
 
     @property
     def dimensions(self) -> int:
-        return self._dims or 1536
+        return self._dims or 1024
