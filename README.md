@@ -380,6 +380,17 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
+### Documentation
+
+Open the docs in your default browser:
+
+```bash
+sms-analyze docs
+```
+
+The rendered documentation is included under `docs/`. Rebuilding from source
+is not part of this submission package.
+
 ### Part 1 — Classic ML (fully local, no setup beyond pip install)
 
 **Run all analyses at once (Part 1 only — Tasks 1–4):**
@@ -466,17 +477,6 @@ $env:OMP_NUM_THREADS="1"
 $env:MKL_NUM_THREADS="1"
 sms-analyze all
 ```
-
-### Documentation
-
-Open the docs in your default browser:
-
-```bash
-sms-analyze docs
-```
-
-The rendered documentation is included under `docs/`. Rebuilding from source
-is not part of this submission package.
 
 ### Use as a library
 
