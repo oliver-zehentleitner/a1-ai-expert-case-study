@@ -24,7 +24,7 @@ from pathlib import Path
 # Shell scripts bundled with the package (setup_ollama.sh / .ps1).
 _SCRIPTS_DIR = Path(__file__).parent / "scripts"
 
-_ENV_FILE = Path(".env")
+_ENV_FILE = Path(__file__).resolve().parent.parent.parent / ".env"
 
 # Set to True when the user answers "always" — persists for the session lifetime.
 _AUTO_SAVE = False
