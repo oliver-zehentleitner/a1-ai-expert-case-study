@@ -193,6 +193,48 @@ def run_docs() -> None:
     webbrowser.open(docs_index.as_uri())
 
 
+def _handle_api_error(exc: Exception) -> None:
+    """Print a clean, actionable message for known API errors and exit."""
+    import sys
+
+    try:
+        from openai import RateLimitError, APIConnectionError, AuthenticationError
+    except ImportError:
+        raise exc  # openai not installed — let it propagate
+
+    if isinstance(exc, RateLimitError):
+        msg = str(exc)
+        if "free tier" in msg.lower() or "UserByModelByDay" in msg:
+            print(
+                "\n[!] Azure rate limit reached (free tier: 150 requests / 24 h).\n"
+                "    Upgrade your deployment to remove this limit:\n"
+                "    https://aka.ms/aifoundrydeployment\n"
+                "    Or wait until the daily quota resets and try again.",
+                flush=True,
+            )
+        else:
+            print(f"\n[!] Rate limit error: {exc}", flush=True)
+        sys.exit(1)
+
+    if isinstance(exc, AuthenticationError):
+        print(
+            "\n[!] Authentication failed — check your API key in .env.\n"
+            f"    Detail: {exc}",
+            flush=True,
+        )
+        sys.exit(1)
+
+    if isinstance(exc, APIConnectionError):
+        print(
+            "\n[!] Could not reach the API endpoint — check your network or endpoint URL.\n"
+            f"    Detail: {exc}",
+            flush=True,
+        )
+        sys.exit(1)
+
+    raise exc  # unknown error — let it propagate with full traceback
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="sms-analyze",
@@ -271,11 +313,14 @@ def main() -> None:
     # Clustering requires an embedding provider and is always run explicitly.
     _part1 = ["normalized", "frequency", "comparison", "ngrams", "classification"]
 
-    if args.task == "all":
-        for name in _part1:
-            dispatch[name]()
-    else:
-        dispatch[args.task]()
+    try:
+        if args.task == "all":
+            for name in _part1:
+                dispatch[name]()
+        else:
+            dispatch[args.task]()
+    except Exception as exc:  # noqa: BLE001
+        _handle_api_error(exc)
 
 
 if __name__ == "__main__":
