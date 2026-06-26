@@ -8,6 +8,8 @@ Usage (from any directory):
 Output: dist/a1-submission-YYYY-MM-DD.zip
 """
 
+import subprocess
+import sys
 import zipfile
 from datetime import date
 from pathlib import Path
@@ -71,7 +73,18 @@ def should_skip(rel: Path) -> bool:
     return False
 
 
+def build_docs() -> None:
+    script = ROOT / "dev" / "sphinx" / "scripts" / "build_docs.sh"
+    print("Building docs…")
+    result = subprocess.run(["bash", str(script)], check=False)
+    if result.returncode != 0:
+        print("ERROR: build_docs.sh failed — aborting.", file=sys.stderr)
+        sys.exit(result.returncode)
+    print("Docs built.\n")
+
+
 def main() -> None:
+    build_docs()
     DIST.mkdir(exist_ok=True)
     zipname = f"a1-submission-{date.today()}.zip"
     zippath = DIST / zipname
