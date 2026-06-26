@@ -207,8 +207,12 @@ def _handle_api_error(exc: Exception) -> None:
         if "free tier" in msg.lower() or "UserByModelByDay" in msg:
             print(
                 "\n[!] Azure rate limit reached (free tier: 150 requests / 24 h).\n"
-                "    Upgrade your deployment to remove this limit:\n"
+                "    Fix: in Azure AI Foundry portal deploy 'Cohere-embed-v3-multilingual'\n"
+                "    as a Standard deployment (not Serverless API) — same model, no daily cap:\n"
                 "    https://aka.ms/aifoundrydeployment\n"
+                "    After deploying, update SMS_AZURE_OPENAI_ENDPOINT in .env —\n"
+                "    Standard deployments use a different base URL, e.g.:\n"
+                "    https://<resource>.services.ai.azure.com/openai/v1\n"
                 "    Or wait until the daily quota resets and try again.",
                 flush=True,
             )
