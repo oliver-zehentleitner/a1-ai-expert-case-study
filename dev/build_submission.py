@@ -47,6 +47,7 @@ EMPTY_DIRS = ["outputs/"]
 
 # Filenames (basename only) to skip wherever they appear
 SKIP_NAMES = {
+    ".env",
     ".gitignore",
     ".gitkeep",
     "AGENTS.md",
