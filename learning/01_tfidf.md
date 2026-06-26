@@ -17,6 +17,14 @@ IDF(word) = log( N / df(word) )
   df(word) = Anzahl der Dokumente die das Wort enthalten
 ```
 
+**Vereinfachung vs. sklearn:** Die Formel oben ist die klassische Lehrbuchversion. sklearn fügt +1-Smoothing-Terme hinzu um Division durch Null zu vermeiden:
+
+```
+IDF(word) = log( (1 + N) / (1 + df(word)) ) + 1
+```
+
+Das `+1` im Nenner verhindert, dass ein Wort das in *allen* Dokumenten vorkommt einen IDF-Wert von 0 bekommt. Das abschließende `+1` stellt sicher, dass der IDF-Wert nie negativ wird. Für das Prinzip und die Interpretation ändert sich nichts — häufige Wörter bekommen niedrige Gewichte, seltene hohe.
+
 **Beispiel:**
 
 | Wort      | Kommt in 1 SMS vor | In wievielen SMS? | IDF     | TF-IDF |
