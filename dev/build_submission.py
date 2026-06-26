@@ -83,6 +83,20 @@ def build_docs() -> None:
     print("Docs built.\n")
 
 
+def iter_files() -> list[Path]:
+    """Return tracked + untracked-but-not-gitignored files via git ls-files.
+
+    Using git ls-files instead of rglob means .gitignore is the single source
+    of truth: __pycache__, *.pyc, .pytest_cache, .venv, etc. are excluded
+    automatically without duplicating ignore rules here.
+    """
+    result = subprocess.run(
+        ["git", "ls-files", "--cached", "--others", "--exclude-standard"],
+        capture_output=True, text=True, cwd=ROOT, check=True,
+    )
+    return [ROOT / line for line in result.stdout.splitlines() if line]
+
+
 def main() -> None:
     build_docs()
     DIST.mkdir(exist_ok=True)
@@ -94,13 +108,13 @@ def main() -> None:
     with zipfile.ZipFile(zippath, "w", compression=zipfile.ZIP_DEFLATED) as zf:
         for empty_dir in EMPTY_DIRS:
             zf.writestr(zipfile.ZipInfo(empty_dir), "")
-        for path in sorted(ROOT.rglob("*")):
+        for path in sorted(iter_files()):
             if not path.is_file():
                 continue
             rel = path.relative_to(ROOT)
             if should_skip(rel):
                 continue
-            zf.write(path, rel)
+            zf.write(path, str(rel).replace("\\", "/"))
             included.append(rel)
 
     size_kb = zippath.stat().st_size // 1024
