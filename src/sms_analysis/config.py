@@ -29,8 +29,8 @@ class Settings(BaseSettings):
 
     Examples::
 
-        SMS_OPENAI_API_KEY=sk-...
-        SMS_AZURE_OPENAI_API_KEY=...
+        SMS_OPENAI_API_KEY=<your-key>
+        SMS_AZURE_OPENAI_API_KEY=<your-key>
         SMS_AZURE_OPENAI_ENDPOINT=https://<resource>.openai.azure.com/openai/v1
     """
 
