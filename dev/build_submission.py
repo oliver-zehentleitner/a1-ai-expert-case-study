@@ -74,9 +74,12 @@ def should_skip(rel: Path) -> bool:
 
 
 def build_docs() -> None:
-    script = ROOT / "dev" / "sphinx" / "scripts" / "build_docs.sh"
     print("Building docs…")
-    result = subprocess.run(["bash", str(script)], check=False)
+    result = subprocess.run(
+        ["bash", "dev/sphinx/scripts/build_docs.sh"],
+        cwd=ROOT,
+        check=False,
+    )
     if result.returncode != 0:
         print("ERROR: build_docs.sh failed — aborting.", file=sys.stderr)
         sys.exit(result.returncode)
