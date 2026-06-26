@@ -36,7 +36,6 @@ SKIP_DIR_COMPONENTS = {
 SKIP_SUBTREES = [
     Path("docs/_sources"),
     Path("docs/_modules"),
-    Path("docs/_downloads"),
     Path("docs/.doctrees"),
     Path("outputs"),         # included as empty dir — evaluators run sms-analyze themselves
 ]
