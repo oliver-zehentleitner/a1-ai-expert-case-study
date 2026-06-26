@@ -410,6 +410,8 @@ what the normalisation pipeline does to individual messages (e.g. how `£100,000
 Generated plots, trained models, and the TSV are saved to `outputs/` by default.
 `outputs/` is intentionally empty — it is the runtime output directory and
 its contents are not included in this deliverable.
+A pre-generated copy is available at
+[notebooks/outputs/normalized_texts.tsv](notebooks/outputs/normalized_texts.tsv).
 
 **Or open the Jupyter notebooks:**
 ```bash
