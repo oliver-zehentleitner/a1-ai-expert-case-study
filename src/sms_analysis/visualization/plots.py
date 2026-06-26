@@ -39,6 +39,7 @@ def plot_ham_spam_comparison(df: pd.DataFrame) -> plt.Figure:
     fig, ax = plt.subplots(figsize=(12, max(6, len(df) * 0.35)))
     colors = df["leaning"].map({"ham": "steelblue", "spam": "tomato"})
     ax.barh(df["word"], df["log_odds"], color=colors)
+    ax.margins(y=0)
     ax.axvline(0, color="black", linewidth=0.8)
     ax.set_xlabel("Log-Odds  (← HAM   SPAM →)")
     ax.set_title("Most Distinctive Words: HAM vs SPAM", fontsize=14, fontweight="bold")
