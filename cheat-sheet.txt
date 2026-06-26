@@ -1,0 +1,2 @@
+# Windows Execution Policy
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
