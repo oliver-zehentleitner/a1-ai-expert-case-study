@@ -4,6 +4,7 @@ import logging
 from enum import Enum
 from pathlib import Path
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
@@ -15,9 +16,10 @@ class EmbeddingProviderType(str, Enum):
     AZURE = "azure"
 
 
-# Resolve .env relative to this file (project root), not CWD — notebooks
-# run from notebooks/ and would otherwise miss the .env in the project root.
-_ENV_FILE = Path(__file__).resolve().parent.parent.parent / ".env"
+# Resolve paths relative to this file (project root), not CWD — the CLI may
+# be invoked from any subdirectory (outputs/, notebooks/, …).
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+_ENV_FILE = _PROJECT_ROOT / ".env"
 
 
 class Settings(BaseSettings):
@@ -29,8 +31,8 @@ class Settings(BaseSettings):
 
     Examples::
 
-        SMS_OPENAI_API_KEY=<your-key>
-        SMS_AZURE_OPENAI_API_KEY=<your-key>
+        SMS_OPENAI_API_KEY=sk-...
+        SMS_AZURE_OPENAI_API_KEY=...
         SMS_AZURE_OPENAI_ENDPOINT=https://<resource>.openai.azure.com/openai/v1
     """
 
@@ -45,8 +47,10 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     # --- Paths -------------------------------------------------------------------
-    data_path: Path = Path("assignment/3D8026C4.zip/SMSSpamCollection")
-    outputs_dir: Path = Path("outputs")
+    data_path: Path = Field(
+        default_factory=lambda: _PROJECT_ROOT / "assignment/3D8026C4.zip/SMSSpamCollection"
+    )
+    outputs_dir: Path = Field(default_factory=lambda: _PROJECT_ROOT / "outputs")
 
     # --- Ollama (local, no API key required) ------------------------------------
     ollama_base_url: str = "http://localhost:11434"
