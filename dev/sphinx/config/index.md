@@ -2,8 +2,8 @@
 :maxdepth: 2
 :caption: Reference
 
-notebooks
 overview
+notebooks
 cli
 api
 architecture
