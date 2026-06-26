@@ -191,8 +191,8 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../notebooks.html">Notebooks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../overview.html">AI Expert Case Study – Oliver Zehentleitner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks.html">Notebooks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../cli.html">CLI Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../architecture.html">Architecture</a></li>
@@ -255,7 +255,7 @@
 <span class="c1"># Shell scripts bundled with the package (setup_ollama.sh / .ps1).</span>
 <span class="n">_SCRIPTS_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;scripts&quot;</span>
 
-<span class="n">_ENV_FILE</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;.env&quot;</span><span class="p">)</span>
+<span class="n">_ENV_FILE</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;.env&quot;</span>
 
 <span class="c1"># Set to True when the user answers &quot;always&quot; — persists for the session lifetime.</span>
 <span class="n">_AUTO_SAVE</span> <span class="o">=</span> <span class="kc">False</span>
