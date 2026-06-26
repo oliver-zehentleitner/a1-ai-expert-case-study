@@ -178,10 +178,24 @@ def _run_install_script() -> None:
         subprocess.run(["bash", str(script)], check=True)
 
 
+def _refresh_path_windows() -> None:
+    """Re-read machine + user PATH from the registry into the current process."""
+    result = subprocess.run(
+        ["powershell", "-Command",
+         "[Environment]::GetEnvironmentVariable('Path','Machine') + ';' +"
+         "[Environment]::GetEnvironmentVariable('Path','User')"],
+        capture_output=True, text=True,
+    )
+    if result.returncode == 0 and result.stdout.strip():
+        os.environ["PATH"] = result.stdout.strip()
+
+
 def _install_ollama(yes: bool) -> str:
     """Run the setup script and return the path to the installed binary."""
     print("Running Ollama installer…")
     _run_install_script()
+    if platform.system() == "Windows":
+        _refresh_path_windows()
     binary = _find_ollama_binary()
     if not binary:
         sys.exit(
