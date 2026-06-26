@@ -1347,7 +1347,7 @@ different config.</p>
 <p>Reusable, presentation-ready plot functions.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="sms_analysis.visualization.plots.plot_word_frequencies">
-<span class="sig-prename descclassname"><span class="pre">sms_analysis.visualization.plots.</span></span><span class="sig-name descname"><span class="pre">plot_word_frequencies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Top</span> <span class="pre">Word</span> <span class="pre">Frequencies'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sms_analysis/visualization/plots.html#plot_word_frequencies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sms_analysis.visualization.plots.plot_word_frequencies" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">sms_analysis.visualization.plots.</span></span><span class="sig-name descname"><span class="pre">plot_word_frequencies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Top</span> <span class="pre">Word</span> <span class="pre">Frequencies'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sms_analysis/visualization/plots.html#plot_word_frequencies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sms_analysis.visualization.plots.plot_word_frequencies" title="Link to this definition">¶</a></dt>
 <dd><p>Horizontal bar chart of word counts.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -1357,6 +1357,7 @@ different config.</p>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>df</strong> (<em>DataFrame</em>)</p></li>
 <li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>fig_height</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -1364,7 +1365,7 @@ different config.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="sms_analysis.visualization.plots.plot_ham_spam_comparison">
-<span class="sig-prename descclassname"><span class="pre">sms_analysis.visualization.plots.</span></span><span class="sig-name descname"><span class="pre">plot_ham_spam_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sms_analysis/visualization/plots.html#plot_ham_spam_comparison"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sms_analysis.visualization.plots.plot_ham_spam_comparison" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">sms_analysis.visualization.plots.</span></span><span class="sig-name descname"><span class="pre">plot_ham_spam_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sms_analysis/visualization/plots.html#plot_ham_spam_comparison"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sms_analysis.visualization.plots.plot_ham_spam_comparison" title="Link to this definition">¶</a></dt>
 <dd><p>Diverging horizontal bar chart.</p>
 <p>HAM-leaning words extend left (negative log-odds),
 SPAM-leaning words extend right (positive log-odds).</p>
@@ -1373,7 +1374,10 @@ SPAM-leaning words extend right (positive log-odds).</p>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></span></p>
 </dd>
 <dt class="field-even">Parameters<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>df</strong> (<em>DataFrame</em>)</p>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>df</strong> (<em>DataFrame</em>)</p></li>
+<li><p><strong>fig_height</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>

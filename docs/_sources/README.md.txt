@@ -412,7 +412,7 @@ sms-analyze clustering --provider azure
 ### Tests
 
 ```bash
-pytest tests/ -v
+python -m pytest tests/ -v
 ```
 
 ### Troubleshooting
