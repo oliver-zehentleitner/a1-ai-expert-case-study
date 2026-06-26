@@ -29,13 +29,60 @@ Suche nach dem "Ellenbogen" — wo die Kurve abflacht. Mathematisch weniger prä
 
 ## UMAP – Visualisierung in 2D
 
-1536-dimensionale Embeddings kann man nicht plotten. UMAP reduziert auf 2D:
+1024- oder 1536-dimensionale Embeddings kann man nicht plotten. UMAP reduziert auf 2D:
 
 - **UMAP** (Uniform Manifold Approximation and Projection) — preserviert lokale Struktur besser als t-SNE
-- Cluster die im 1536D-Raum nahe sind, bleiben auch im 2D-Plot nahe
+- Cluster die im hochdimensionalen Raum nahe sind, bleiben auch im 2D-Plot nahe
 - **Wichtig:** Die 2D-Achsen haben keine direkte Bedeutung — nur die relative Position zählt
 
 **Fallback:** Wenn umap-learn nicht installiert ist, verwenden wir PCA (schneller, aber verliert mehr Struktur).
+
+### Wie UMAP intern arbeitet — die wichtigen Konzepte
+
+#### k-NN-Graph (k-Nearest-Neighbor-Graph)
+Als erstes baut UMAP einen Graphen aus den hochdimensionalen Punkten: jeder Punkt wird mit seinen `k` nächsten Nachbarn verbunden (typisch k=15). Das Ergebnis ist ein Netz — Punkte sind Knoten, Verbindungen sind Kanten. Dieser Graph kodiert die lokale Struktur der Daten: wer ist nah bei wem?
+
+#### Laplacian-Matrix
+Aus dem k-NN-Graphen wird eine Matrix berechnet: die **Laplacian-Matrix** `L = D - A`.  
+- `A` = Adjazenzmatrix: `A[i][j] = 1` wenn Punkt i und j verbunden sind, sonst 0  
+- `D` = Diagonalmatrix: `D[i][i]` = Anzahl der Verbindungen von Punkt i (sein "Grad")  
+
+Die Laplacian-Matrix kodiert die Konnektivität des gesamten Graphen.
+
+#### Eigenvektoren und Eigenwerte
+Für eine Matrix `M` gilt: `M · v = λ · v`  
+- `v` = **Eigenvektor**: ein spezieller Vektor, den die Matrix nur streckt, nicht dreht  
+- `λ` = **Eigenwert**: der Streckungsfaktor  
+
+Die Eigenvektoren der Laplacian-Matrix sind besonders: sie repräsentieren **globale Strukturen** im Graphen. Der erste Eigenvektor zeigt die stärkste Trennlinie im Graph (die Grenze zwischen den am stärksten getrennten Gruppen), der zweite die zweitstärkste usw.
+
+#### Eigengap
+Der **Eigengap** ist der Unterschied zwischen aufeinanderfolgenden Eigenwerten: `λ₂ - λ₁`, `λ₃ - λ₂`, usw.
+
+- **Großer Eigengap** → die Eigenwerte sind klar voneinander getrennt → der Graph hat klare globale Struktur → der Eigenvektorsolver konvergiert zuverlässig
+- **Kleiner Eigengap** → die Eigenwerte liegen sehr nahe beieinander → keine klare globale Trennlinie → der Solver kann nicht entscheiden welcher Eigenvektor "der erste" ist → er schlägt fehl
+
+Bei 5574 SMS mit 1024 Dimensionen und vielen kleinen Themengruppen ist der Eigengap klein. Der Solver scheitert, UMAP gibt die Warnung aus.
+
+#### Warum `init="spectral"` auf großen Datasets versagt
+UMAP berechnet mit Spectral-Initialisierung die ersten 2 Eigenvektoren des Laplacian als **Startpositionen** für die 2D-Einbettung. Die Idee: ein "warmer Start" der der finalen Struktur schon ähnelt, damit die Optimierung schneller und stabiler konvergiert.
+
+Das Problem: mit wachsender Datenmenge wächst der Graph exponentiell, der Eigengap schrumpft, und der numerische Solver kommt an seine Grenzen.
+
+#### Unsere Lösung: `init="pca"`
+Statt Eigenvektoren des Laplacian verwenden wir die **ersten 2 Hauptkomponenten** (Principal Components) der Originaldaten als Startpositionen.
+
+- **Deterministisch**: PCA hat keine numerischen Stabilitätsprobleme bei großen Datasets
+- **Datengetrieben**: die Startpositionen spiegeln die stärksten Varianzrichtungen in den Embeddings wider — das ist ein sinnvoller Startpunkt, nicht Rauschen
+- **Skaliert**: funktioniert gleich gut bei 500 und bei 5574 Punkten
+- `random_state=42` kontrolliert dann nur noch die stochastische Feinoptimierung
+
+#### Warum nicht "Noise oder Jitter hinzufügen"?
+UMAP's eigene Warnung schlägt vor: *"Consider adding some noise or jitter to your data."*
+
+Das ist keine gute Idee aus einem grundsätzlichen Grund: **wir würden korrekte Daten absichtlich verschlechtern um einen numerischen Fehler zu umgehen.**
+
+Die Embeddings die wir berechnet haben sind richtig — sie kodieren präzise die semantische Bedeutung der SMS. Rauschen hinzuzufügen würde diese Information absichtlich degradieren, damit ein Solver stabil läuft. Das ist Symptombehandlung, nicht Problemlösung. Es löst den eigentlichen Sachverhalt (falscher Init-Algorithmus für diese Datenmenge) nicht, sondern verschleiert ihn.
 
 ## Was du im Hearing sagen kannst
 
@@ -74,6 +121,14 @@ Silhouette misst geometrische Kompaktheit, nicht fachliche Relevanz. Cohere find
 ---
 
 ## Laufzeit-Warnungen die kein Problem sind
+
+### `UserWarning: Spectral initialisation failed! … Falling back to random initialisation!`
+
+**Was passiert:** UMAP hat versucht die Eigenvektoren des Laplacian zu berechnen (siehe oben), aber der Eigengap war zu klein für den numerischen Solver.
+
+**Warum wir das nicht mehr sehen:** Wir setzen `init="pca"` explizit (statt Default `"spectral"`). Damit entfällt der Versuch der Spectral-Berechnung komplett.
+
+---
 
 ### `UserWarning: n_jobs value 1 overridden to 1 by setting random_state`
 
