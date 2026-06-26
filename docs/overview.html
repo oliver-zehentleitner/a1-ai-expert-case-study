@@ -672,12 +672,14 @@ HDBSCAN would be more robust but harder to explain in 15 minutes.</p></li>
 <p><strong>Linux / macOS</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
 <span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
 pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 </pre></div>
 </div>
 <p><strong>Windows (PowerShell)</strong></p>
 <div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">-m</span> <span class="n">venv</span> <span class="p">.</span><span class="n">venv</span>
 <span class="p">.</span><span class="n">venv</span><span class="p">\</span><span class="n">Scripts</span><span class="p">\</span><span class="n">Activate</span><span class="p">.</span><span class="n">ps1</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">-r</span> <span class="n">requirements</span><span class="p">.</span><span class="n">txt</span>
 <span class="n">pip</span> <span class="n">install</span> <span class="n">-e</span> <span class="p">.</span>
 </pre></div>
 </div>
@@ -761,18 +763,8 @@ Use <code class="docutils literal notranslate"><span class="pre">--yes</span></c
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sms-analyze<span class="w"> </span>docs
 </pre></div>
 </div>
-<p>To rebuild the docs from source (e.g. after code changes):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[docs]&quot;</span><span class="w">   </span><span class="c1"># first time only (all platforms)</span>
-</pre></div>
-</div>
-<p><strong>Linux / macOS</strong></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bash<span class="w"> </span>dev/sphinx/scripts/build_docs.sh
-</pre></div>
-</div>
-<p><strong>Windows (PowerShell)</strong></p>
-<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="p">.\</span><span class="n">dev</span><span class="p">\</span><span class="n">sphinx</span><span class="p">\</span><span class="n">scripts</span><span class="p">\</span><span class="n">build_docs</span><span class="p">.</span><span class="n">ps1</span>
-</pre></div>
-</div>
+<p>The rendered documentation is included under <code class="docutils literal notranslate"><span class="pre">docs/</span></code>. Rebuilding from source
+is not part of this submission package.</p>
 </section>
 <section id="use-as-a-library">
 <h3>Use as a library<a class="headerlink" href="#use-as-a-library" title="Link to this heading">¶</a></h3>
