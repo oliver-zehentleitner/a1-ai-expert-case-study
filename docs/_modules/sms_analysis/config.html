@@ -235,6 +235,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">Field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pydantic_settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseSettings</span><span class="p">,</span> <span class="n">SettingsConfigDict</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -249,9 +250,10 @@
 
 
 
-<span class="c1"># Resolve .env relative to this file (project root), not CWD — notebooks</span>
-<span class="c1"># run from notebooks/ and would otherwise miss the .env in the project root.</span>
-<span class="n">_ENV_FILE</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;.env&quot;</span>
+<span class="c1"># Resolve paths relative to this file (project root), not CWD — the CLI may</span>
+<span class="c1"># be invoked from any subdirectory (outputs/, notebooks/, …).</span>
+<span class="n">_PROJECT_ROOT</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span>
+<span class="n">_ENV_FILE</span> <span class="o">=</span> <span class="n">_PROJECT_ROOT</span> <span class="o">/</span> <span class="s2">&quot;.env&quot;</span>
 
 
 <div class="viewcode-block" id="Settings">
@@ -265,8 +267,8 @@
 
 <span class="sd">    Examples::</span>
 
-<span class="sd">        SMS_OPENAI_API_KEY=&lt;your-key&gt;</span>
-<span class="sd">        SMS_AZURE_OPENAI_API_KEY=&lt;your-key&gt;</span>
+<span class="sd">        SMS_OPENAI_API_KEY=sk-...</span>
+<span class="sd">        SMS_AZURE_OPENAI_API_KEY=...</span>
 <span class="sd">        SMS_AZURE_OPENAI_ENDPOINT=https://&lt;resource&gt;.openai.azure.com/openai/v1</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -281,8 +283,10 @@
     <span class="n">log_level</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;INFO&quot;</span>
 
     <span class="c1"># --- Paths -------------------------------------------------------------------</span>
-    <span class="n">data_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;assignment/3D8026C4.zip/SMSSpamCollection&quot;</span><span class="p">)</span>
-    <span class="n">outputs_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;outputs&quot;</span><span class="p">)</span>
+    <span class="n">data_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">_PROJECT_ROOT</span> <span class="o">/</span> <span class="s2">&quot;assignment/3D8026C4.zip/SMSSpamCollection&quot;</span>
+    <span class="p">)</span>
+    <span class="n">outputs_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">_PROJECT_ROOT</span> <span class="o">/</span> <span class="s2">&quot;outputs&quot;</span><span class="p">)</span>
 
     <span class="c1"># --- Ollama (local, no API key required) ------------------------------------</span>
     <span class="n">ollama_base_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;http://localhost:11434&quot;</span>
