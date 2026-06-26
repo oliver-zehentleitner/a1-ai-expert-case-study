@@ -292,7 +292,7 @@ def build_provider(args, settings):
             _offer_save({"SMS_OPENAI_API_KEY": api_key}, yes)
         return OpenAIProvider(api_key=api_key, model=settings.openai_model)
 
-    # ── Azure OpenAI ─────────────────────────────────────────────────────────
+    # ── Azure AI Foundry ─────────────────────────────────────────────────────
     if provider_name == "azure":
         missing: dict[str, str] = {}
 
@@ -307,17 +307,9 @@ def build_provider(args, settings):
             print("[!] SMS_AZURE_OPENAI_ENDPOINT not set.")
             endpoint = _ask_input(
                 "Enter SMS_AZURE_OPENAI_ENDPOINT",
-                "https://<resource>.openai.azure.com/",
+                "https://<resource>.openai.azure.com/openai/v1",
             )
             missing["SMS_AZURE_OPENAI_ENDPOINT"] = endpoint
-
-        deployment = settings.azure_openai_deployment
-        if not deployment:
-            deployment = _ask_input(
-                "Enter SMS_AZURE_OPENAI_DEPLOYMENT",
-                "text-embedding-3-small",
-            )
-            missing["SMS_AZURE_OPENAI_DEPLOYMENT"] = deployment
 
         if missing:
             _offer_save(missing, yes)
@@ -325,8 +317,7 @@ def build_provider(args, settings):
         return AzureOpenAIProvider(
             api_key=api_key,
             endpoint=endpoint,
-            deployment=deployment,
-            api_version=settings.azure_openai_api_version,
+            model=settings.azure_openai_model,
         )
 
     raise ValueError(f"Unknown provider: {provider_name!r}")

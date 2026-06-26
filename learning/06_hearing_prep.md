@@ -94,8 +94,11 @@
 
 ## Zur Architektur
 
-**"Warum three Embedding-Provider?"**  
-> "Das ist das Strategy Pattern. Die Clustering-Logik hängt nur vom abstrakten Interface `EmbeddingProvider` ab. Lokale Entwicklung und Tests laufen mit Ollama ohne API-Kosten. Produktion kann auf Azure oder OpenAI switchen durch eine Konfigurationsänderung — kein Code-Change. Das ist die richtige Abstraktion für austauschbare externe Dienste."
+**"Warum drei Embedding-Provider — und warum nicht einfach OpenAI dreimal?"**  
+> "Zwei Gründe. Erstens das Strategy Pattern: die Clustering-Logik hängt nur vom abstrakten Interface `EmbeddingProvider` ab. Lokale Entwicklung läuft mit Ollama ohne API-Kosten, Produktion switcht durch eine Konfigurationsänderung. Zweitens echte Diversität statt Varietät: alle drei Provider haben unterschiedliche Modell-Familien und Deployment-Modelle — `nomic-embed-text` (Open Source, lokal), `text-embedding-3-small` (OpenAI), `Cohere-embed-v3-multilingual` (Cohere auf Azure). Das Cohere-Modell ist als einziges multilingual — direkt relevant für A1's Anwendungsfall mit deutschen SMS. Dasselbe Modell auf drei Infrastrukturen würde zeigen dass die Abstraktion funktioniert, aber nicht dass sie echten Mehrwert liefert."
+
+**"Warum Azure AI Foundry und nicht classic Azure OpenAI Service?"**  
+> "Azure AI Foundry ist die aktuelle Microsoft-Plattform — Azure OpenAI Service ist darin aufgegangen. Der technische Unterschied: classic Azure OpenAI benötigt ein explizites Deployment pro Modell im Portal; Azure AI Foundry bietet Serverless-Catalog-Modelle an, die ohne Deployment direkt verfügbar sind. Das Cohere-Modell ist auf dem resource als Serverless-Modell verfügbar, `text-embedding-3-small` würde ein Deployment brauchen — und wäre dann inhaltlich dasselbe wie der OpenAI-Provider. Der `/openai/v1` Compatibility-Endpoint erlaubt den Zugriff mit dem normalen OpenAI Python Client, nur mit anderer `base_url`. Das macht den Provider-Swap besonders sauber: identisches Interface, unterschiedliche Infrastruktur und Modell-Family."
 
 **"Wie würdest du das skalieren wenn du 10 Millionen SMS hast?"**  
 > "Embeddings parallelisieren: Batch-Processing mit mehreren API-Calls parallel. K-Means skaliert schlecht auf sehr viele Datenpunkte — ich würde Mini-Batch K-Means verwenden oder auf Approximate Nearest Neighbor Methoden wechseln. Für die Persistenz der Embeddings: ein Vector Store wie Qdrant oder pgvector. Das Setup von Docker/Kubernetes das ich hier angelegt habe wäre der natürliche nächste Schritt."

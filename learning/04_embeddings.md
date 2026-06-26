@@ -35,12 +35,23 @@ Misst den Winkel zwischen Vektoren, nicht die absolute Distanz. 1 = identisch, 0
 - Gut für englische Texte
 - Läuft auf CPU, kein API-Key nötig
 
-## Für das Video: text-embedding-3-small (Azure OpenAI)
+## Cloud-Provider: drei bewusst diverse Ansätze
 
-- 1536 Dimensionen
-- State-of-the-art Qualität
-- Batch-Processing (256 Texte pro Request)
-- Über Azure: enterprise-grade, DSGVO-konform
+Die Entscheidung war, drei echte Alternativen zu zeigen, nicht dasselbe Modell dreimal zu hosten:
+
+| Provider | Modell | Dim | Fokus |
+|----------|--------|-----|-------|
+| Ollama (lokal) | nomic-embed-text | 768 | Englisch, Privacy-first, kein API-Key |
+| OpenAI | text-embedding-3-small | 1536 | Englisch, State-of-the-art |
+| Azure AI Foundry | Cohere-embed-v3-multilingual | 1024 | **Multilingual** — relevant für deutsche SMS |
+
+### Warum nicht text-embedding-3-small über Azure?
+
+`text-embedding-3-small` wäre auf Azure verfügbar — aber nur mit explizitem Deployment im Azure Portal konfigurieren. Inhaltlich wäre das OpenAI ein zweites Mal, nur auf Azure-Infrastruktur. Cohere multilingual ist ein anderes Modell-Family, ein anderer Vendor, und direkt als Serverless-Modell verfügbar ohne Deployment-Setup.
+
+### Azure AI Foundry vs. classic Azure OpenAI
+
+Azure AI Foundry ist die aktuelle Microsoft-Plattform (Azure OpenAI Service ist darin aufgegangen). Der Zugriff läuft über `/openai/v1` Compatibility-Endpoint mit direkten Model-IDs statt Deployment-Namen — identisches Interface zu OpenAI, andere Infrastruktur und andere Modell-Auswahl.
 
 ## Was du im Hearing sagen kannst
 
