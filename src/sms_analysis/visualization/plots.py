@@ -29,14 +29,18 @@ def plot_word_frequencies(
     return fig
 
 
-def plot_ham_spam_comparison(df: pd.DataFrame) -> plt.Figure:
+def plot_ham_spam_comparison(
+    df: pd.DataFrame,
+    fig_height: float | None = None,
+) -> plt.Figure:
     """
     Diverging horizontal bar chart.
 
     HAM-leaning words extend left (negative log-odds),
     SPAM-leaning words extend right (positive log-odds).
     """
-    fig, ax = plt.subplots(figsize=(12, max(6, len(df) * 0.35)))
+    height = fig_height if fig_height is not None else max(6, len(df) * 0.35)
+    fig, ax = plt.subplots(figsize=(12, height))
     colors = df["leaning"].map({"ham": "steelblue", "spam": "tomato"})
     ax.barh(df["word"], df["log_odds"], color=colors)
     ax.margins(y=0)
