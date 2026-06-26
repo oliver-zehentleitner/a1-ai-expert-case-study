@@ -18,7 +18,7 @@ The `.ipynb` source files live in `notebooks/` in the repository root.
 
 Tokenisation, stop-word filtering, and top-20 word frequencies across the full corpus.
 
-[Open notebook](notebooks/01_word_frequency.html){.external}
+<a href="notebooks/01_word_frequency.html">Open notebook</a>
 
 ---
 
@@ -27,7 +27,7 @@ Tokenisation, stop-word filtering, and top-20 word frequencies across the full c
 Log-odds analysis: which words are statistically associated with spam vs. legitimate
 messages.  Shows the geographic and temporal bias of the dataset.
 
-[Open notebook](notebooks/02_ham_vs_spam.html){.external}
+<a href="notebooks/02_ham_vs_spam.html">Open notebook</a>
 
 ---
 
@@ -36,7 +36,7 @@ messages.  Shows the geographic and temporal bias of the dataset.
 Bigrams and trigrams reveal phrase-level patterns that unigrams miss.
 SPAM n-grams are structural templates; HAM n-grams are genuine conversation.
 
-[Open notebook](notebooks/03_ngrams.html){.external}
+<a href="notebooks/03_ngrams.html">Open notebook</a>
 
 ---
 
@@ -46,7 +46,7 @@ TF-IDF pipeline + Logistic Regression.  Covers train/test split, evaluation metr
 (F1, ROC-AUC, confusion matrix), feature importance, and live prediction on custom
 messages including German examples.
 
-[Open notebook](notebooks/04_classification.html){.external}
+<a href="notebooks/04_classification.html">Open notebook</a>
 
 ---
 
@@ -56,4 +56,4 @@ Embedding-based clustering with three providers (Ollama, OpenAI, Azure AI Foundr
 Cohere multilingual).  Auto-detects available API keys, runs all providers on the same
 corpus, and compares results side by side.
 
-[Open notebook](notebooks/05_semantic_clustering.html){.external}
+<a href="notebooks/05_semantic_clustering.html">Open notebook</a>
