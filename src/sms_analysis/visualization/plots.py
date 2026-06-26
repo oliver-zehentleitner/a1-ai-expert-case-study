@@ -13,9 +13,14 @@ _FIG_SIZE = (12, 6)
 _DPI = 150
 
 
-def plot_word_frequencies(df: pd.DataFrame, title: str = "Top Word Frequencies") -> plt.Figure:
+def plot_word_frequencies(
+    df: pd.DataFrame,
+    title: str = "Top Word Frequencies",
+    fig_height: float | None = None,
+) -> plt.Figure:
     """Horizontal bar chart of word counts."""
-    fig, ax = plt.subplots(figsize=(12, max(6, len(df) * 0.35)))
+    height = fig_height if fig_height is not None else max(6, len(df) * 0.35)
+    fig, ax = plt.subplots(figsize=(12, height))
     sns.barplot(data=df, x="count", y="word", ax=ax, orient="h", color="steelblue")
     ax.set_title(title, fontsize=14, fontweight="bold")
     ax.set_xlabel("Count")
