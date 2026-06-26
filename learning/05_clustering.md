@@ -49,6 +49,30 @@ Nach dem Clustering: Was ist in jedem Cluster? Zufallssample von 3-5 SMS aus jed
 
 ---
 
+## Provider-Vergleich (echte Zahlen, 500 SMS, gleicher Seed)
+
+| Provider | Modell | k | Silhouette | Spam-Verteilung |
+|----------|--------|---|-----------|-----------------|
+| Ollama (lokal) | nomic-embed-text | 4 | 0.022 | C3: 55% Spam |
+| OpenAI | text-embedding-3-small | 4 | 0.042 | C1: 51% Spam |
+| Azure AI Foundry | Cohere-embed-v3-multilingual | 3 | 0.044 | C2: 50%, C0/C1: <3% |
+
+**Was die Zahlen zeigen:**
+
+- Cloud-Embeddings (OpenAI, Azure/Cohere) liefern deutlich höhere Silhouette-Scores als lokales Ollama (0.042–0.044 vs. 0.022) — bessere geometrische Cluster-Trennung.
+- Cohere multilingual findet die sauberste Struktur: k=3 statt k=4, ~91% aller Spam-Nachrichten in einem einzigen Cluster, die anderen zwei Cluster fast rein HAM.
+- OpenAI und Ollama verteilen Spam auf mehr Cluster — die Spam-Templates sind zwar erkennbar, aber weniger konzentriert.
+
+**Warum Cohere multilingual trotz gleicher Silhouette besser strukturiert ist:**
+
+Silhouette misst geometrische Kompaktheit, nicht fachliche Relevanz. Cohere findet eine binärere Struktur (HAM vs. SPAM), die direkt der Klassifikationsaufgabe entspricht. OpenAI und Ollama fragmentieren HAM feiner (Singlish-Cluster, kurze Antworten, etc.) — interessant für die Analyse, aber für Spam-Detection nicht entscheidend.
+
+**Was du im Hearing sagen kannst:**
+
+> "Notebook 5 läuft alle verfügbaren Provider automatisch auf dem gleichen Sample durch und vergleicht sie direkt. Das zeigt, dass die Provider-Abstraktion echte Alternativen unterstützt — nicht dasselbe Modell dreimal. Das Cohere-Modell auf Azure AI Foundry ist als einziges multilingual, was für A1 direkt relevant ist: es kodiert deutsche Wörter statt sie als Out-of-Vocabulary zu ignorieren."
+
+---
+
 ## Laufzeit-Warnungen die kein Problem sind
 
 ### `UserWarning: n_jobs value 1 overridden to 1 by setting random_state`

@@ -51,16 +51,29 @@ src/sms_analysis/
 ├── classification/ – TF-IDF pipeline + evaluation utilities          (Task 4)
 ├── clustering/
 │   ├── base.py     – Abstract EmbeddingProvider interface            (Task 5)
-│   └── providers/  – Ollama · OpenAI · Azure OpenAI implementations
+│   └── providers/  – Ollama · OpenAI · Azure AI Foundry (Cohere) implementations
 ├── visualization/  – Reusable, presentation-ready plot functions
 └── cli.py          – sms-analyze CLI entrypoint
 ```
 
 **Key architectural decision — provider abstraction:**
 The clustering logic depends only on the abstract `EmbeddingProvider` interface.
-Switching from local (Ollama) to cloud (OpenAI / Azure) is a single config
-change — no code change. This follows the Strategy pattern and makes the
-solution testable, extensible, and provider-agnostic.
+Switching providers is a single config change — no code change. This follows the
+Strategy pattern and makes the solution testable, extensible, and provider-agnostic.
+
+The three providers are intentionally diverse — different vendors, different model
+families, different deployment models — rather than the same model hosted three ways:
+
+| Provider | Model | Dimensions | Focus |
+|----------|-------|-----------|-------|
+| Ollama (local) | nomic-embed-text | 768 | English, privacy-first, no API key |
+| OpenAI | text-embedding-3-small | 1536 | English, state-of-the-art |
+| Azure AI Foundry | Cohere-embed-v3-multilingual | 1024 | **Multilingual**, relevant for German SMS |
+
+Azure AI Foundry is used via its `/openai/v1` compatibility endpoint with the Cohere
+serverless model — no deployment configuration required. `text-embedding-3-small` would
+also be available on Azure but would require creating an explicit deployment and would
+duplicate the OpenAI provider without adding value.
 
 **Configuration** is fully environment-driven via `pydantic-settings`.
 All variables use the `SMS_` prefix (see `.env.example`).
@@ -329,10 +342,12 @@ where a more robust estimate across multiple folds is needed.
 
 ### GenAI / Embeddings (Part 2)
 
-**Embeddings — nomic-embed-text (Ollama) / text-embedding-3-small (OpenAI / Azure)**
+**Embeddings — three diverse providers (Ollama / OpenAI / Azure AI Foundry)**
 - *Advantage:* Dense semantic vectors capture meaning, not just vocabulary. Two semantically
   similar spam messages using completely different words land in the same cluster — impossible
   with TF-IDF. Running locally via Ollama requires no API key and works offline.
+  The three providers cover different model families and deployment models, showing that the
+  abstraction works across genuinely different backends (not just the same model re-hosted).
 - *Disadvantage:* Embedding 5,500 messages locally is slow on CPU (~minutes). API-based
   providers are faster but introduce a cost and a network dependency.
 
@@ -419,10 +434,11 @@ sms-analyze clustering --provider openai
 # prompts for SMS_OPENAI_API_KEY on first run and offers to save it to .env
 ```
 
-**Option C — Azure OpenAI**
+**Option C — Azure AI Foundry (Cohere-embed-v3-multilingual)**
 ```bash
 sms-analyze clustering --provider azure
-# prompts for SMS_AZURE_OPENAI_API_KEY, endpoint, and deployment on first run
+# prompts for SMS_AZURE_OPENAI_API_KEY and endpoint on first run
+# endpoint format: https://<resource>.openai.azure.com/openai/v1
 ```
 
 ### Tests
