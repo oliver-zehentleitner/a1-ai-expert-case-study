@@ -33,12 +33,17 @@ print(result.summary())
 # ── 5. Predict new messages ───────────────────────────────────────────────────
 samples = [
     "Hey, are you coming to the party tonight?",
+    "Hey, are you coming to the cinema tonight?",
     "WINNER! Claim your free prize now — call 08001234567!",
+    "WINNER! You have been selected for a FREE cash prize. Call 0800 now!",
     "Can you pick up some milk on the way home?",
+    "I'll be home around 7, can you start dinner?",
     "FREE entry to win £1000 cash, text WIN to 80085",
-    "FREE entry to win €1000 cash, text WIN to 09001234",
+    "FREE entry to win $1000 cash, text WIN to 09001234",
     "FREE entry to win 1000 £ cash, text WIN to 80085",
     "FREE entry to win 1000 EUR cash, text WIN to 09001234",
+    "Claim your €500 reward at www.win2day.at immediately!",
+    "Holen Sie sich jetzt Ihre 500-Euro-Prämie unter www.win2day.at!",
 ]
 predictions = clf.predict(samples)
 probas = clf.predict_proba(samples)
