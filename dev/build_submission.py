@@ -39,7 +39,6 @@ SKIP_SUBTREES = [
     Path("docs/_downloads"),
     Path("docs/.doctrees"),
     Path("outputs"),         # included as empty dir — evaluators run sms-analyze themselves
-    Path("notebooks/outputs"),
 ]
 
 # Empty directories to add explicitly (ZIP doesn't store dirs without files)
