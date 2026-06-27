@@ -1,9 +1,6 @@
-# Install Ollama and pull the embedding model used for semantic clustering.
-# Run from PowerShell: .\scripts\setup_ollama.ps1
+# Install Ollama. Model pulling is handled by sms-analyze after this script returns.
 # Safe to run multiple times (idempotent).
 #Requires -Version 5.1
-
-if ($env:SMS_OLLAMA_MODEL) { $Model = $env:SMS_OLLAMA_MODEL } else { $Model = "nomic-embed-text" }
 
 Write-Host "==> Checking Ollama installation..."
 if (Get-Command ollama -ErrorAction SilentlyContinue) {
@@ -20,9 +17,4 @@ if (Get-Command ollama -ErrorAction SilentlyContinue) {
                 [System.Environment]::GetEnvironmentVariable("Path","User")
 }
 
-Write-Host "==> Pulling model: $Model"
-ollama pull $Model
-
-Write-Host ""
-Write-Host "Setup complete. Run the clustering analysis:"
-Write-Host "  sms-analyze clustering"
+Write-Host "==> Ollama is installed."
