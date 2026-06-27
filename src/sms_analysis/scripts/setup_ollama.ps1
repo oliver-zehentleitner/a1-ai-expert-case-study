@@ -16,15 +16,23 @@ if ((Get-Command ollama -ErrorAction SilentlyContinue) -or (Test-Path $OllamaExe
     exit 0
 }
 
-# Fresh install.
+# Fresh install: start without -Wait because OllamaSetup.exe never exits —
+# it transitions into the running Ollama tray app after installation.
 Write-Host "==> Downloading Ollama installer..."
 $Installer = "$env:TEMP\OllamaSetup.exe"
 Invoke-WebRequest -Uri "https://ollama.com/download/OllamaSetup.exe" -OutFile $Installer
-Write-Host "==> Running installer (follow the prompts)..."
-Start-Process -FilePath $Installer -Wait
-Remove-Item $Installer
-# Refresh PATH so 'ollama' is found without reopening the terminal.
-$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" +
-            [System.Environment]::GetEnvironmentVariable("Path","User")
+Write-Host "==> Starting Ollama installer — please complete the setup wizard..."
+Start-Process -FilePath $Installer
 
-Write-Host "==> Ollama installed."
+# Poll until Ollama becomes reachable (installer starts it when done).
+Write-Host "==> Waiting for Ollama to start (up to 5 minutes)..."
+for ($i = 1; $i -le 60; $i++) {
+    Start-Sleep -Seconds 5
+    try {
+        Invoke-WebRequest -Uri "http://127.0.0.1:11434/api/version" -TimeoutSec 2 -ErrorAction Stop | Out-Null
+        Write-Host "==> Ollama is running."
+        exit 0
+    } catch {}
+    Write-Host "   still waiting... ($($i * 5)s)"
+}
+Write-Host "==> Timed out — sms-analyze will offer to start Ollama manually."
