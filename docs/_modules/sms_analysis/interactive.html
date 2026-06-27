@@ -481,13 +481,28 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># ── Step 1: installed? ───────────────────────────────────────────────────</span>
     <span class="n">binary</span> <span class="o">=</span> <span class="n">_find_ollama_binary</span><span class="p">()</span>
+    <span class="n">just_installed</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">binary</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[!] Ollama is not installed.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">_ask</span><span class="p">(</span><span class="s2">&quot;Install it now using the bundled setup script?&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">yes</span><span class="o">=</span><span class="n">yes</span><span class="p">):</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;Aborted: Ollama not installed.&quot;</span><span class="p">)</span>
         <span class="n">binary</span> <span class="o">=</span> <span class="n">_install_ollama</span><span class="p">(</span><span class="n">yes</span><span class="p">)</span>
+        <span class="n">just_installed</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="c1"># ── Step 2: running? (loop with 3-way choice) ────────────────────────────</span>
+    <span class="c1"># After a fresh install the OS may auto-start Ollama (Windows tray app).</span>
+    <span class="c1"># Wait silently up to 15 s before falling through to the interactive menu.</span>
+    <span class="k">if</span> <span class="n">just_installed</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_ollama_reachable</span><span class="p">(</span><span class="n">base_url</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Waiting for Ollama to start…&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">15</span><span class="p">):</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">_ollama_reachable</span><span class="p">(</span><span class="n">base_url</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; ready.&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">()</span>  <span class="c1"># newline after dots</span>
+
     <span class="k">while</span> <span class="ow">not</span> <span class="n">_ollama_reachable</span><span class="p">(</span><span class="n">base_url</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[!] Ollama is not running.&quot;</span><span class="p">)</span>
         <span class="n">choice</span> <span class="o">=</span> <span class="n">_ask_choice</span><span class="p">(</span>
