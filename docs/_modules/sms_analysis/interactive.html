@@ -375,20 +375,19 @@
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_find_ollama_binary</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Locate the ollama binary in PATH or known install locations.&quot;&quot;&quot;</span>
+    <span class="c1"># On Windows the process PATH may not reflect the registry yet — refresh first.</span>
+    <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;Windows&quot;</span><span class="p">:</span>
+        <span class="n">_refresh_path_windows</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">found</span> <span class="o">:=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;ollama&quot;</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">found</span>
     <span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;.local&quot;</span> <span class="o">/</span> <span class="s2">&quot;bin&quot;</span> <span class="o">/</span> <span class="s2">&quot;ollama&quot;</span><span class="p">,</span>
         <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;LOCALAPPDATA&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span> <span class="o">/</span> <span class="s2">&quot;Programs&quot;</span> <span class="o">/</span> <span class="s2">&quot;Ollama&quot;</span> <span class="o">/</span> <span class="s2">&quot;ollama.exe&quot;</span><span class="p">,</span>
+        <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;USERPROFILE&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span> <span class="o">/</span> <span class="s2">&quot;AppData&quot;</span> <span class="o">/</span> <span class="s2">&quot;Local&quot;</span> <span class="o">/</span> <span class="s2">&quot;Programs&quot;</span> <span class="o">/</span> <span class="s2">&quot;Ollama&quot;</span> <span class="o">/</span> <span class="s2">&quot;ollama.exe&quot;</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="k">for</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">candidate</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
             <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span>
-    <span class="c1"># Last resort on Windows: refresh PATH from registry (handles custom install locations).</span>
-    <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;Windows&quot;</span><span class="p">:</span>
-        <span class="n">_refresh_path_windows</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">found</span> <span class="o">:=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;ollama&quot;</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">found</span>
     <span class="k">return</span> <span class="kc">None</span>
 
 
