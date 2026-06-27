@@ -53,7 +53,7 @@ class Settings(BaseSettings):
     outputs_dir: Path = Field(default_factory=lambda: _PROJECT_ROOT / "outputs")
 
     # --- Ollama (local, no API key required) ------------------------------------
-    ollama_base_url: str = "http://localhost:11434"
+    ollama_base_url: str = "http://127.0.0.1:11434"
     ollama_model: str = "nomic-embed-text"
 
     # --- OpenAI ------------------------------------------------------------------
