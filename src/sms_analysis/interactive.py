@@ -248,13 +248,28 @@ def ensure_ollama(base_url: str, model: str, yes: bool) -> None:
     """
     # ── Step 1: installed? ───────────────────────────────────────────────────
     binary = _find_ollama_binary()
+    just_installed = False
     if not binary:
         print("[!] Ollama is not installed.")
         if not _ask("Install it now using the bundled setup script?", default=True, yes=yes):
             sys.exit("Aborted: Ollama not installed.")
         binary = _install_ollama(yes)
+        just_installed = True
 
     # ── Step 2: running? (loop with 3-way choice) ────────────────────────────
+    # After a fresh install the OS may auto-start Ollama (Windows tray app).
+    # Wait silently up to 15 s before falling through to the interactive menu.
+    if just_installed and not _ollama_reachable(base_url):
+        print("Waiting for Ollama to start…", end="", flush=True)
+        for _ in range(15):
+            time.sleep(1)
+            if _ollama_reachable(base_url):
+                print(" ready.")
+                break
+            print(".", end="", flush=True)
+        else:
+            print()  # newline after dots
+
     while not _ollama_reachable(base_url):
         print("[!] Ollama is not running.")
         choice = _ask_choice(
