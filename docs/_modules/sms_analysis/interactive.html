@@ -374,12 +374,21 @@
 <span class="c1"># ---------------------------------------------------------------------------</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_find_ollama_binary</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Locate the ollama binary in PATH or the user install location.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Locate the ollama binary in PATH or known install locations.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">found</span> <span class="o">:=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;ollama&quot;</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">found</span>
-    <span class="n">candidate</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;.local&quot;</span> <span class="o">/</span> <span class="s2">&quot;bin&quot;</span> <span class="o">/</span> <span class="s2">&quot;ollama&quot;</span>
-    <span class="k">if</span> <span class="n">candidate</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
-        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span>
+    <span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;.local&quot;</span> <span class="o">/</span> <span class="s2">&quot;bin&quot;</span> <span class="o">/</span> <span class="s2">&quot;ollama&quot;</span><span class="p">,</span>
+        <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;LOCALAPPDATA&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span> <span class="o">/</span> <span class="s2">&quot;Programs&quot;</span> <span class="o">/</span> <span class="s2">&quot;Ollama&quot;</span> <span class="o">/</span> <span class="s2">&quot;ollama.exe&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="k">for</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">candidate</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span>
+    <span class="c1"># Last resort on Windows: refresh PATH from registry (handles custom install locations).</span>
+    <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;Windows&quot;</span><span class="p">:</span>
+        <span class="n">_refresh_path_windows</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">found</span> <span class="o">:=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;ollama&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">found</span>
     <span class="k">return</span> <span class="kc">None</span>
 
 
@@ -479,6 +488,12 @@
 <span class="sd">    2. **Running?** — ping the API; offer Start / Try again / Abort in a loop.</span>
 <span class="sd">    3. **Model pulled?** — check ``/api/tags``; offer to pull if missing.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Fast path: already running — skip binary detection and install entirely.</span>
+    <span class="k">if</span> <span class="n">_ollama_reachable</span><span class="p">(</span><span class="n">base_url</span><span class="p">):</span>
+        <span class="n">binary</span> <span class="o">=</span> <span class="n">_find_ollama_binary</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">&quot;ollama&quot;</span>
+        <span class="n">_ensure_ollama_model</span><span class="p">(</span><span class="n">base_url</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">binary</span><span class="p">,</span> <span class="n">yes</span><span class="p">)</span>
+        <span class="k">return</span>
+
     <span class="c1"># ── Step 1: installed? ───────────────────────────────────────────────────</span>
     <span class="n">binary</span> <span class="o">=</span> <span class="n">_find_ollama_binary</span><span class="p">()</span>
     <span class="n">just_installed</span> <span class="o">=</span> <span class="kc">False</span>

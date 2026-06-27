@@ -122,3 +122,4 @@ outputs/*.png
 outputs/*.tsv
 outputs/embeddings_cache/
 learning/
+notebooks/.ipynb_checkpoints/
