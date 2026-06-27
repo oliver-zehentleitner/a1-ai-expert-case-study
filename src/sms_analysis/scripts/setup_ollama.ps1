@@ -3,8 +3,9 @@
 #Requires -Version 5.1
 
 Write-Host "==> Checking Ollama installation..."
-if (Get-Command ollama -ErrorAction SilentlyContinue) {
-    Write-Host "==> Ollama already installed: $(ollama --version 2>&1 | Select-Object -First 1)"
+$OllamaExe = "$env:LOCALAPPDATA\Programs\Ollama\ollama.exe"
+if ((Get-Command ollama -ErrorAction SilentlyContinue) -or (Test-Path $OllamaExe)) {
+    Write-Host "==> Ollama already installed."
 } else {
     Write-Host "==> Downloading Ollama installer..."
     $Installer = "$env:TEMP\OllamaSetup.exe"

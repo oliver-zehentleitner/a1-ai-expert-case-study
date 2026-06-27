@@ -143,12 +143,21 @@ def _write_env(pairs: dict[str, str]) -> None:
 # ---------------------------------------------------------------------------
 
 def _find_ollama_binary() -> str | None:
-    """Locate the ollama binary in PATH or the user install location."""
+    """Locate the ollama binary in PATH or known install locations."""
     if found := shutil.which("ollama"):
         return found
-    candidate = Path.home() / ".local" / "bin" / "ollama"
-    if candidate.is_file():
-        return str(candidate)
+    candidates = [
+        Path.home() / ".local" / "bin" / "ollama",
+        Path(os.environ.get("LOCALAPPDATA", "")) / "Programs" / "Ollama" / "ollama.exe",
+    ]
+    for candidate in candidates:
+        if candidate.is_file():
+            return str(candidate)
+    # Last resort on Windows: refresh PATH from registry (handles custom install locations).
+    if platform.system() == "Windows":
+        _refresh_path_windows()
+        if found := shutil.which("ollama"):
+            return found
     return None
 
 
