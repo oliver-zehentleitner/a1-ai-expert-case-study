@@ -33,6 +33,6 @@ for ($i = 1; $i -le 60; $i++) {
         Write-Host "==> Ollama is running."
         exit 0
     } catch {}
-    Write-Host "   still waiting... ($($i * 5)s)"
+    $elapsed = $i * 5; Write-Host "   still waiting... (${elapsed}s)"
 }
 Write-Host "==> Timed out — sms-analyze will offer to start Ollama manually."
