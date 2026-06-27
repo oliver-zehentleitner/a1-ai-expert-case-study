@@ -255,6 +255,12 @@ def ensure_ollama(base_url: str, model: str, yes: bool) -> None:
     2. **Running?** — ping the API; offer Start / Try again / Abort in a loop.
     3. **Model pulled?** — check ``/api/tags``; offer to pull if missing.
     """
+    # Fast path: already running — skip binary detection and install entirely.
+    if _ollama_reachable(base_url):
+        binary = _find_ollama_binary() or "ollama"
+        _ensure_ollama_model(base_url, model, binary, yes)
+        return
+
     # ── Step 1: installed? ───────────────────────────────────────────────────
     binary = _find_ollama_binary()
     just_installed = False
